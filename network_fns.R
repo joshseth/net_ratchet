@@ -1,3 +1,6 @@
+library(Matrix)
+library(expm)
+
 rand_realization <- function (sys, std, m) {
     n0 <- nrow(sys$A);
     bn0 <- ncol(sys$B);
@@ -83,14 +86,19 @@ delete_gene <- function(sys, d)
 
 ###################################
 
-h <- function (t, M, BK, CK) { sapply(t, function (tt) CK %*% expm(tt*M) %*% BK) },
+h <- function (t, M, BK, CK) 
+{ 
+    sapply(t, function (tt) CK %*% expm::expm(tt*M) %*% BK) 
+}
 
-Df <- function (A, t, BK, CK, optimal_h) {
+Df <- function (A, t, BK, CK, optimal_h) 
+{
     exp(-t/(4*pi)) * ( h(t, M=A, BK=BK, CK=CK) - optimal_h(t) )^2
 }
 
-D <- function (A, BK, CK, optimal_h, upper=10, ...) {
-    f <- function (t) { Df(A,t, BK, CK, h, optimal_h) }
+D <- function (A, BK, CK, optimal_h, upper=10, ...) 
+{
+    f <- function (t) { Df(A, t, BK, CK, optimal_h) }
     integrate(f, lower=0, upper=upper, ...)$value
 }
 
