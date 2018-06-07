@@ -19,11 +19,10 @@ rand_realization <- function (sys, std, m) {
         A21 <- matrix(c(rep(0,n0*m)), nrow=n0, ncol=m);
         A12 <- matrix(c(rnorm(m*n0, mean=0, std)), nrow=m, ncol=n0);
         A11 <- matrix(c(rnorm(m^2, mean=0, std)), nrow=m, ncol=m);
-        #
+        
         #B2 <- matrix(c(rnorm(m*bn0, mean=0, sd=std)), nrow = m, ncol = bn0 );
         B1 <- matrix(c(rep(0,m*bn0)), nrow = m, ncol = bn0 );
         C1 <- matrix(c(rep(0, cn0*m)), nrow = cn0, ncol = m);
-    
      }
 
     if (m == 0)
@@ -36,8 +35,7 @@ rand_realization <- function (sys, std, m) {
     }
  
     KalA <- rbind(cbind(A11, A12),
-                                cbind(A21, A22)
-                                );
+                  cbind(A21, A22));
     KalB <- rbind(B1, B2);
     KalC <- cbind(C1, C2);
     
@@ -47,15 +45,13 @@ rand_realization <- function (sys, std, m) {
     #### Rescale and replace eigenvalues of P ###
     eig <- eigen(P)
     P <- eig$vectors %*% diag(eig$values/Mod(eig$values)) %*% solve(eig$vectors)
- # P <- matrix(0,nrow=(n0+m+l), ncol=(n0+m+l));
- # for (i in 1:(n0+m+l))
- # {
- #     P[i,i] <- 1;
- # }
+    stopifnot(all(Im(P) < 1e-8))
+    P <- Re(P)
+
     ran_sys <- list();
-    ran_sys$A <- Re(P%*%KalA%*%solve(P));
-    ran_sys$B <- Re(P%*%KalB);
-    ran_sys$C <- Re(KalC%*%solve(P));
+    ran_sys$A <- P%*%KalA%*%solve(P)
+    ran_sys$B <- P%*%KalB
+    ran_sys$C <- KalC%*%solve(P)
 
     return(ran_sys)
 }
