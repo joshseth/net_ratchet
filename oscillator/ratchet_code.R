@@ -1,13 +1,6 @@
 source("../network_fns.R")
+source("params.R")  # defines sys0
 set.seed(23)
-
-sys0 <- list(
-             name = "the simple oscillator",
-             A = matrix(c(0,-1,1,0), nrow = 2, ncol = 2 ), 
-             B = matrix(c(1,1), nrow = 2, ncol = 1), 
-             C = matrix(c(1,0), nrow=1, ncol=2),
-             optimal_h = function (t) { sin(t)+cos(t) }
-        )
 
 ransys_costdel <- function(sys0, std, m)
 {
@@ -23,7 +16,8 @@ ransys_costdel <- function(sys0, std, m)
     for (i in 1:n)
     {
         sysd <- delete_gene(sys, i)
-        dist_list[i] <- tryCatch(D(sysd$A, sysd$B, sysd$C, optimal_h=sys0$h), error=function(e) NaN)
+        dist_list[i] <- tryCatch(D(sysd$A, sysd$B, sysd$C, optimal_h=sys0$optimal_h), 
+                                 error=function(e) NaN)
     }
     return(c(n, mean(dist_list), min(dist_list), mean(exp(-dist_list))))
 }
