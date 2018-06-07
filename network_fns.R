@@ -40,17 +40,22 @@ rand_realization <- function (sys, std, m) {
                                 );
     KalB <- rbind(B1, B2);
     KalC <- cbind(C1, C2);
-
+    
+    #### Generate P, the change of basis matrix #################
     P <- matrix(c(rnorm((n0+m)^2, mean=0, sd=std)), nrow = (n0 + m), ncol = (n0 + m));
+
+    #### Rescale and replace eigenvalues of P ###
+    eig <- eigen(P)
+    P <- eig$vectors %*% diag(eig$values/Mod(eig$values)) %*% solve(eig$vectors)
  # P <- matrix(0,nrow=(n0+m+l), ncol=(n0+m+l));
  # for (i in 1:(n0+m+l))
  # {
  #     P[i,i] <- 1;
  # }
     ran_sys <- list();
-    ran_sys$A <- P%*%KalA%*%solve(P);
-    ran_sys$B <- P%*%KalB;
-    ran_sys$C <- KalC%*%solve(P);
+    ran_sys$A <- Re(P%*%KalA%*%solve(P));
+    ran_sys$B <- Re(P%*%KalB);
+    ran_sys$C <- Re(KalC%*%solve(P));
 
     return(ran_sys)
 }
