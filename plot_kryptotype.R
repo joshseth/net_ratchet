@@ -1,16 +1,17 @@
 #!/usr/bin/env Rscript
 
 usage <- "
-    ./plot_kryptotype.R (name of directory with params.R in) (number of extra dimensions)
+    ./plot_kryptotype.R (name of directory with params.R in) (number of extra dimensions) (system sigma)
 "
 
 args <- if (interactive()) { scan(what='') } else { commandArgs(TRUE) }
-if (length(args) != 2) {
+if (length(args) != 3) {
     stop(usage)
 }
 
 basedir <- args[1]
 extra_dims <- as.integer(args[2])
+system_sigma <- as.numeric(args[3])
 paramfile <- file.path(basedir, "params.R")
 outdir <- file.path(basedir, "kryptotype_plots")
 dir.create(outdir, showWarnings=FALSE)
@@ -24,7 +25,7 @@ if (!exists("sys0")) {
     stop(paste("Parameter file", paramfile, "does not define sys0."))
 }
 
-system_sigma <- 0.001
+#system_sigma <- 0.001
 max_time <- 10
 sys1 <- rand_realization(sys0, system_sigma, extra_dims)
 K <- diag(ncol(sys1$C))
