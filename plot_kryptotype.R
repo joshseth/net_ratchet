@@ -35,7 +35,7 @@ pdf(file=outfile, width=8, height=4, pointsize=10)
 
 kryp <- h(tt, sys1$A, sys1$B, K)
 
-matplot(tt, t(kryp) , type = 'l', main=sprintf("Kryptotype: %s", basedir))
+matplot(tt, t(kryp) , type = 'l', ylim=c(-6,6), main=sprintf("Kryptotype: %s", basedir))
 mtext(sprintf("system sigma=%0.4f, size=%d", system_sigma, extra_dims ), side=3, line=0.2)
 
 dev.off()
