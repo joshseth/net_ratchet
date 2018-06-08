@@ -35,8 +35,10 @@ pdf(file=outfile, width=8, height=4, pointsize=10)
 
 kryp <- h(tt, sys1$A, sys1$B, K)
 
+layout(matrix(c(1,1,1,2), nrow=1))
 matplot(tt, t(kryp) , type = 'l', ylim=c(-6,6), main=sprintf("Kryptotype: %s", basedir))
 mtext(sprintf("system sigma=%0.4f, size=%d", system_sigma, extra_dims ), side=3, line=0.2)
+plot(eigen(sys1$A)$values, xlab="real", ylab="imaginary", main="eigenvalues")
 
 dev.off()
 
