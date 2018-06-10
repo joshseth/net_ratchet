@@ -1,35 +1,78 @@
+source("network_fns.R")
 
-  pop <- rep(list(sys0), N)
+evolve <- function(sys0) {
+  population_size <- 100
+  max_generation <- 100
+  pop <- rep(list(sys0), population_size)
+  next_gen <- rep(list(sys0), population_size)
 
-  for (i in 1:N)
+
+for (generations in 1:max_generation)
+{
+  for (i in 1:population_size)
   {
-  
-  sys <- pop[[i]]
-
-if (abs(rnorm(1,0,1)) >= 5) 
+    # mutate coefficients
+    for (k in 1:length(pop[[i]]$A))
     {
-    rbind(cbind(sys$A, matrix(rep(0, nrow(sys$A)), nrow= nrow(sys$A), ncol=1)),
-      matrix(0, nrow = 1, ncol = ncol(sys$A) + 1)
-      )
+      if ( sample(1:100,1) == 1)
+      {
+        pop[[i]]$A[k] <- pop[[i]]$A[k] + rnorm(1,0,1)
+    }
+    }
+    for (k in 1:length(pop[[i]]$B))
+    {
+      if ( sample(1:100,1) == 1)
+      {
+        pop[[i]]$B[k] <- pop[[i]]$B[k] + rnorm(1,0,1)
+    }
+    }
+    for (k in 1:length(pop[[i]]$C))
+    {
+      if ( sample(1:100,1) == 1)
+      {
+        pop[[i]]$C[k] <- pop[[i]]$C[k] + rnorm(1,0,1)
+    }
     }
 
-
-  mdel <- abs(rnorm(4,0,1))
-  for (i in 1:nrow(sys$A))
-  {
-    if (mdel[i] >= 5)
+    # gene deletions
+    if ( sample(1:100,1) == 1)
     {
-      sys$A <- delete_gene(sys$A, i)
-      break
+      d <- sample(1:nrow(pop[[i]]$A), 1)
+      pop[[i]] <- delete_gene(pop[[i]], d)
     }
+    # gene duplications
+    if (sample(1:100,1) == 1)
+    {
+      pop[[i]]$A <- rbind(cbind(pop[[i]]$A, matrix(rep(0, nrow(pop[[i]]$A)), nrow= nrow(pop[[i]]$A), ncol=1)), matrix(0, nrow = 1, ncol = ncol(pop[[i]]$A) + 1))
+      pop[[i]]$B <- rbind(pop[[i]]$B, 0)
+      pop[[i]]$C <- cbind(pop[[i]]$C, 0)
+
+    }
+    pop[[i]]$fitness <- exp(-(D(pop[[i]]$A, pop[[i]]$B, pop[[i]]$C))^2)
   }
+  sorted_pop <- pop[order(sapply(pop, '[[', 'fitness'), decreasing = TRUE)]
+  list_of_fitnesses <- sapply(sorted_pop, '[[', 'fitness')
+  sum_of_fitnesses <- sum(sapply(sorted_pop, '[[', 'fitness'))
+#  if (sum_of_fitnesses > 10^-6)
+#  {
+#  brackets <- rep(0, population_size + 1)
+#  for (i in 1:population_size)
+#  {
+#    brackets[i+1] <- sum(list_of_fitnesses[1:i]/sum(list_of_fitnesses))
+#  }
+#  }
+ # if (sum_of_fitnesses <= 10^-6)
+ # {
+    brackets <- seq(0,1, 1/population_size)
+ # }
 
-l <- length(sys$A)
-mut <- rep(1,l) + rnorm(l, 0, 0.001)
+  for (j in 1:population_size)
+  {
+  selection_probability <- runif(1,0,1)
 
-sys$A <- sys$A * mut
-
-fitness[i] <- D(sys$A. sys$B, sys$C)
+  next_gen[[j]] <- sorted_pop[[findInterval(selection_probability, brackets, rightmost.closed = TRUE)]]
   }
-
-
+  pop <- next_gen
+}
+return(pop)
+}
