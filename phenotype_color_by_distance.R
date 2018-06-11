@@ -9,7 +9,7 @@ for(j in 1:10)
 {
     dsys1 <- delete_gene(sys1, j)
     systems[[j]] <- dsys1
-    sf[j] <- D(dsys1$A, dsys1$B, dsys1$C)
+    sf[j] <- D(dsys1, sys0$optimal_h)
 }
 ### mutation/coefficient version #
 #for(j in 1:50)
@@ -17,7 +17,7 @@ for(j in 1:10)
 #    dsys1 <- sys1
 #    dsys1$A <- sys1$A + rnorm(10^2,0,0.01)
 #    systems[[j]] <- dsys1
-#    sf[j] <- D(dsys1$A, dsys1$B, dsys1$C)
+#    sf[j] <- D(dsys1, sys0$optimal_h)
 #}
 fitsys <- data.table(networks=systems, score=sf)
 orderfitsys <- fitsys[order(fitsys$score, decreasing = TRUE)]
@@ -36,6 +36,6 @@ matplot(tt, xx, type='l', lty=1, ylim=c(-6,6), lwd=2, col=cols,
 legend('topleft', lty=1, legend=c(sprintf("D = %0.1f", seq(0,max_dist,length.out=6)[-6]),
                                   sprintf("D > %0.1f", max_dist)),
        col=colfn(seq(0,max_dist,length.out=6)))
-lines(tt, h(tt, sys0$A, sys0$B, sys0$C), col=adjustcolor('black', 0.5), lwd=4)
+lines(tt, h(tt, sys0), col=adjustcolor('black', 0.5), lwd=4)
 dev.off()
 

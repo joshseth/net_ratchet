@@ -39,7 +39,7 @@ for (j in 1:50)
     dsys1 <- sys1
     dsys1$A <- sys1$A + rnorm(nrow(sys1$A)^2, 0, mutation_sigma)
     systems[[j]] <- dsys1
-    sf[j] <- D(dsys1$A, dsys1$B, dsys1$C, sys0$optimal_h)
+    sf[j] <- D(dsys1, sys0$optimal_h)
 }
 
 pdf(file=outfile, width=8, height=4, pointsize=10)

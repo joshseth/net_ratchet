@@ -99,32 +99,33 @@ mutate_system <- function (sys, p_mut, sigma_mut)
 
 ###################################
 
-h <- function (t, M, BK, CK) 
+h <- function (t, sys)
+{
+  sapply(t, function (tt) sys$C %*% expm::expm(tt*sys$A) %*% sys$B) 
+}
+
+spectral_h <- function (t, sys)
 { 
-    sapply(t, function (tt) CK %*% expm::expm(tt*M) %*% BK) 
+  # NOTE: this only works for one-dimensional output
+  etA <- eigen(t(sys$A))
+  out <- sapply(t, function (tt) {
+             ((sys$C %*%
+                         Re(solve(t(etA$vectors), 
+                                  t(sweep(etA$vectors, 2, exp(tt * etA$values), "*")))))
+              %*% sys$B)
+                               } )
+  return(out)
 }
 
-spectral_h <- function (sys) {
-    etA <- eigen(sys$A)
-    h <- function (t, input) {
-        sapply(t, function (tt) {
-               (tcrossprod(sys$C, 
-                           Re(solve(t(etA$vectors), 
-                                    sweep(etA$vectors, 2, tt * etA$values, "*")))) 
-                %*% (sys$B %*% input))
-                                 } )
-    }
-    return(h)
-}
 
-Df <- function (A, t, BK, CK, optimal_h) 
+Df <- function (t, sys, optimal_h) 
 {
-    exp(-t/(4*pi)) * ( h(t, M=A, BK=BK, CK=CK) - optimal_h(t) )^2
+    exp(-t/(4*pi)) * ( h(t, sys) - optimal_h(t) )^2
 }
 
-D <- function (A, BK, CK, optimal_h, upper=10, ...) 
+D <- function (sys, optimal_h, upper=10, ...) 
 {
-    f <- function (t) { Df(A, t, BK, CK, optimal_h) }
+    f <- function (t) { Df(t, sys, optimal_h) }
     integrate(f, lower=0, upper=upper, ...)$value
 }
 
