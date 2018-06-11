@@ -64,6 +64,39 @@ delete_gene <- function(sys, d)
     return(del_sys)
 }
 
+new_gene <- function (sys)
+{
+  sys$A <- rbind(cbind(sys$A, 
+                       matrix(rep(0, nrow(sys$A)), nrow= nrow(sys$A), ncol=1)), 
+                 matrix(0, nrow = 1, ncol = ncol(sys$A) + 1))
+  sys$B <- rbind(sys$B, 0)
+  sys$C <- cbind(sys$C, 0)
+  return(sys)
+}
+
+mutate_system <- function (sys, p_mut, sigma_mut) 
+{
+  # mutate random entries in A, B, and C:
+  # choose each entry with probability p_mut
+  # and change each by Normal(0, sigma_mut).
+  mut_A <- (rbinom(length(sys$A), size=1, prob=p_mut) == 1)
+  if (any(mut_A)) 
+  {
+    sys$A[mut_A] <- sys$A[mut_A] + rnorm(sum(mut_A), 0, sigma_mut)
+  }
+  mut_B <- (rbinom(length(sys$B), size=1, prob=p_mut) == 1)
+  if (any(mut_B))
+  {
+    sys$B[mut_B] <- sys$B[mut_B] + rnorm(sum(mut_B), 0, sigma_mut)
+  }
+  mut_C <- (rbinom(length(sys$C), size=1, prob=p_mut) == 1)
+  if (any(mut_C))
+  {
+    sys$C[mut_C] <- sys$C[mut_C] + rnorm(sum(mut_C), 0, sigma_mut)
+  }
+  return(sys)
+}
+
 ###################################
 
 h <- function (t, M, BK, CK) 
@@ -71,13 +104,14 @@ h <- function (t, M, BK, CK)
     sapply(t, function (tt) CK %*% expm::expm(tt*M) %*% BK) 
 }
 
-spectral_h <- function (t, sys) {
+spectral_h <- function (sys) {
     etA <- eigen(sys$A)
-    h <- function (t, u) {
+    h <- function (t, input) {
         sapply(t, function (tt) {
-               (tcrossprod(u %*% sys$C, 
+               (tcrossprod(sys$C, 
                            Re(solve(t(etA$vectors), 
-                                    sweep(etA$vectors, 2, tt * etA$values, "*")))) %*% sys$B )
+                                    sweep(etA$vectors, 2, tt * etA$values, "*")))) 
+                %*% (sys$B %*% input))
                                  } )
     }
     return(h)

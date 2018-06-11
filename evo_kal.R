@@ -1,78 +1,43 @@
 source("network_fns.R")
 
-evolve <- function(sys0) {
-  population_size <- 100
-  max_generation <- 1000
-  pop <- rep(list(sys0), population_size)
-  next_gen <- rep(list(sys0), population_size)
-
-
-for (generations in 1:max_generation)
+evolve <- function(sys0, 
+                   population_size,
+                   max_generation,
+                   p_mut=0.1,
+                   sigma_mut=0.1,
+                   p_del=0.1,
+                   p_new=0.1) 
 {
-  for (i in 1:population_size)
+  pop <- rep(list(sys0), population_size)
+  next_gen <- vector(mode="list", length=population_size)
+  fitness_fn <- function (sys) {
+      exp(-(D(sys$A, sys$B, sys$C, sys0$optimal_h))^2)
+  }
+
+  for (generations in 1:max_generation)
   {
-    # mutate coefficients
-    for (k in 1:length(pop[[i]]$A))
+    for (i in 1:population_size)
     {
-      if ( sample(1:10,1) == 1)
+      # mutate coefficients
+      pop[[i]] <- mutate_system(pop[[i]], p_mut=0.1, sigma_mut=0.1)
+
+      # gene deletions
+      if ( (rbinom(1, size=1, prob=p_del) == 1) && nrow(pop[[i]]$A > 1))
       {
-        pop[[i]]$A[k] <- pop[[i]]$A[k] + rnorm(1,0,0.1)
-    }
-    }
-    for (k in 1:length(pop[[i]]$B))
-    {
-      if ( sample(1:10,1) == 1)
+        d <- sample(1:nrow(pop[[i]]$A), 1)
+        pop[[i]] <- delete_gene(pop[[i]], d)
+      }
+
+      # add a new (zero'd out) gene
+      if (rbinom(1, size=1, prob=p_new) == 1)
       {
-        pop[[i]]$B[k] <- pop[[i]]$B[k] + rnorm(1,0,0.1)
+        pop[[i]] <- new_gene(pop[[i]])
+      }
     }
-    }
-    for (k in 1:length(pop[[i]]$C))
-    {
-      if ( sample(1:10,1) == 1)
-      {
-        pop[[i]]$C[k] <- pop[[i]]$C[k] + rnorm(1,0,0.1)
-    }
-    }
-
-    # gene deletions
-    if ( sample(1:10,1) == 1 & nrow(pop[[i]]$A > 1))
-    {
-      d <- sample(1:nrow(pop[[i]]$A), 1)
-      pop[[i]] <- delete_gene(pop[[i]], d)
-    }
-    # gene duplications
-    if (sample(1:10,1) == 1)
-    {
-      pop[[i]]$A <- rbind(cbind(pop[[i]]$A, matrix(rep(0, nrow(pop[[i]]$A)), nrow= nrow(pop[[i]]$A), ncol=1)), matrix(0, nrow = 1, ncol = ncol(pop[[i]]$A) + 1))
-      pop[[i]]$B <- rbind(pop[[i]]$B, 0)
-      pop[[i]]$C <- cbind(pop[[i]]$C, 0)
-
-    }
-    pop[[i]]$fitness <- exp(-(D(pop[[i]]$A, pop[[i]]$B, pop[[i]]$C))^2)
+    fitnesses <- sapply(pop, fitness_fn)
+    next_indices <- sample.int(population_size, replace=TRUE, prob=fitnesses)
+    next_gen <- pop[next_indices]
+    pop <- next_gen
   }
-  sorted_pop <- pop[order(sapply(pop, '[[', 'fitness'), decreasing = TRUE)]
-  list_of_fitnesses <- sapply(sorted_pop, '[[', 'fitness')
-  sum_of_fitnesses <- sum(sapply(sorted_pop, '[[', 'fitness'))
-  if (sum_of_fitnesses > 10^-6)
-  {
-  brackets <- rep(0, population_size + 1)
-  for (i in 1:population_size)
-  {
-    brackets[i+1] <- sum(list_of_fitnesses[1:i]/sum(list_of_fitnesses))
-  }
-  }
-  if (sum_of_fitnesses <= 10^-6)
-  {
-    brackets <- seq(0,1, 1/population_size)
-  }
-
-  for (j in 1:population_size)
-  {
-  selection_probability <- runif(1,0,1)
-
-  next_gen[[j]] <- sorted_pop[[findInterval(selection_probability, brackets, rightmost.closed = TRUE)]]
-  }
-  pop <- next_gen
-}
-return(pop)
+  return(pop)
 }
