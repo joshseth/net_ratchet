@@ -2,6 +2,7 @@ library(Matrix)
 library(expm)
 
 rand_realization <- function (sys, std, m) {
+    # generate a random equivalent system from the Kalman decomposition
     # m is the number of extra dimensions
     n0 <- nrow(sys$A);
     bn0 <- ncol(sys$B);
@@ -70,6 +71,18 @@ h <- function (t, M, BK, CK)
     sapply(t, function (tt) CK %*% expm::expm(tt*M) %*% BK) 
 }
 
+spectral_h <- function (t, sys) {
+    etA <- eigen(sys$A)
+    h <- function (t, u) {
+        sapply(t, function (tt) {
+               (tcrossprod(u %*% sys$C, 
+                           Re(solve(t(etA$vectors), 
+                                    sweep(etA$vectors, 2, tt * etA$values, "*")))) %*% sys$B )
+                                 } )
+    }
+    return(h)
+}
+
 Df <- function (A, t, BK, CK, optimal_h) 
 {
     exp(-t/(4*pi)) * ( h(t, M=A, BK=BK, CK=CK) - optimal_h(t) )^2
@@ -80,4 +93,5 @@ D <- function (A, BK, CK, optimal_h, upper=10, ...)
     f <- function (t) { Df(A, t, BK, CK, optimal_h) }
     integrate(f, lower=0, upper=upper, ...)$value
 }
+
 
