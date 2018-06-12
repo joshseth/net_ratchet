@@ -11,7 +11,7 @@ evolve <- function(sys0,
   pop <- rep(list(sys0), population_size)
   next_gen <- vector(mode="list", length=population_size)
   fitness_fn <- function (sys) {
-      exp(-(D(sys, sys0$optimal_h))^2)
+      exp(-(D(sys, sys0))^2)
   }
 
   for (generations in 1:max_generation)

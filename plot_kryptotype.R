@@ -25,7 +25,6 @@ if (!exists("sys0")) {
     stop(paste("Parameter file", paramfile, "does not define sys0."))
 }
 
-#system_sigma <- 0.001
 max_time <- 10
 sys1 <- rand_realization(sys0, system_sigma, extra_dims)
 sysK <- sys1
