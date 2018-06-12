@@ -39,7 +39,7 @@ f <- function (x) {
 # map real parts of eigenvalues to (-infty, max_growth)
 eX$values <- f(Re(eX$values)) + 1i * Im(eX$values)
 
-A <- t(solve(t(eX$vectors), t(sweep(eX$vectors, 2,  eX$values, "*"))))
+A <- Re(t(solve(t(eX$vectors), t(sweep(eX$vectors, 2,  eX$values, "*")))))
 
 if (FALSE) {
     eA <- eigen(A)

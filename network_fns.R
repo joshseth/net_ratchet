@@ -117,16 +117,28 @@ spectral_h <- function (t, sys)
   return(out)
 }
 
-
-Df <- function (t, sys, optimal_h) 
+orig_D <- function (sys, optimal_h, upper=10, ...) 
 {
-    exp(-t/(4*pi)) * ( h(t, sys) - optimal_h(t) )^2
-}
-
-D <- function (sys, optimal_h, upper=10, ...) 
-{
-    f <- function (t) { Df(t, sys, optimal_h) }
+    f <- function (t) 
+    {
+        exp(-t/(4*pi)) * ( h(t, sys) - optimal_h(t) )^2
+    }
     integrate(f, lower=0, upper=upper, ...)$value
 }
 
-
+D <- function (sys1, sys2, gamma=1.0) {
+    e1 <- eigen(sys1$A)
+    e2 <- eigen(sys2$A)
+    X1 <- crossprod(sys1$C %*% e1$vectors, sys1$C %*% e1$vectors)
+    X1 <- X1 / (gamma - outer(e1$values, e1$values, "+"))
+    X2 <- crossprod(sys2$C %*% e2$vectors, sys2$C %*% e2$vectors)
+    X2 <- X2 / (gamma - outer(e2$values, e2$values, "+"))
+    X12 <- crossprod(sys1$C %*% e1$vectors, sys2$C %*% e2$vectors)
+    X12 <- X12 / (gamma - outer(e1$values, e2$values, "+"))
+    Q1 <- solve(e1$vectors, sys1$B)
+    Q2 <- solve(e2$vectors, sys2$B)
+    Z1 <- Re(crossprod(Q1, X1 %*% Q1))
+    Z2 <- Re(crossprod(Q2, X2 %*% Q2))
+    Z12 <- Re(crossprod(Q1, X12 %*% Q2))
+    return(sum(diag(Z1) + diag(Z2) - 2 * diag(Z12)))
+}

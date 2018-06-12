@@ -9,7 +9,7 @@ for(j in 1:10)
 {
     dsys1 <- delete_gene(sys1, j)
     systems[[j]] <- dsys1
-    sf[j] <- D(dsys1, sys0$optimal_h)
+    sf[j] <- D(dsys1, sys0)
 }
 ### mutation/coefficient version #
 #for(j in 1:50)
@@ -17,7 +17,7 @@ for(j in 1:10)
 #    dsys1 <- sys1
 #    dsys1$A <- sys1$A + rnorm(10^2,0,0.01)
 #    systems[[j]] <- dsys1
-#    sf[j] <- D(dsys1, sys0$optimal_h)
+#    sf[j] <- D(dsys1, sys0)
 #}
 fitsys <- data.table(networks=systems, score=sf)
 orderfitsys <- fitsys[order(fitsys$score, decreasing = TRUE)]
