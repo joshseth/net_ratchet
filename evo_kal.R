@@ -6,10 +6,10 @@ evolve <- function(sys0,
                    p_mut=0.1,
                    sigma_mut=0.1,
                    p_del=0.1,
-                   p_new=0.1) 
+                   p_new=0.1,
+                   pop=rep(list(sys0), population_size)
+                   ) 
 {
-  fossil_record <- list()
-  pop <- rep(list(sys0), population_size)
   next_gen <- vector(mode="list", length=population_size)
   fitness_fn <- function (sys) {
       exp(-(D(sys, sys0))^2)
@@ -39,8 +39,6 @@ evolve <- function(sys0,
     next_indices <- sample.int(population_size, replace=TRUE, prob=fitnesses)
     next_gen <- pop[next_indices]
     pop <- next_gen
-    outfile <- file.path(sprintf("fossil_%0*d.Rdata", nchar(max_generation) ,generations))
-    save(pop, file = outfile)
   }
   return(pop)
 }
