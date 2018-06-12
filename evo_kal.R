@@ -23,7 +23,7 @@ evolve <- function(sys0,
       pop[[i]] <- mutate_system(pop[[i]], p_mut=0.1, sigma_mut=0.1)
 
       # gene deletions
-      if ( (rbinom(1, size=1, prob=p_del) == 1) && nrow(pop[[i]]$A > 1))
+      if ((rbinom(1, size=1, prob=p_del) == 1) && (nrow(pop[[i]]$A) > 1))
       {
         d <- sample(1:nrow(pop[[i]]$A), 1)
         pop[[i]] <- delete_gene(pop[[i]], d)

@@ -126,17 +126,36 @@ orig_D <- function (sys, optimal_h, upper=10, ...)
     integrate(f, lower=0, upper=upper, ...)$value
 }
 
+nonsingular_eigen <- function (A, tol=sqrt(.Machine$double.eps))
+{
+    eA <- eigen(A)
+    smalls <- (Mod(eA$values) < tol)
+    if (all(smalls)) 
+    {
+        eA$values[] <- 0.0
+        eA$vectors <- diag(nrow(A))
+        eA$inv_vectors <- diag(nrow(A))
+    } 
+    else 
+    {
+        eA$vectors <- eA$vectors[,!smalls,drop=FALSE]
+        eA$values <- eA$values[!smalls]
+        eA$inv_vectors <- MASS::ginv(eA$vectors)
+    }
+    return(eA)
+}
+
 D <- function (sys1, sys2, gamma=1.0) {
-    e1 <- eigen(sys1$A)
-    e2 <- eigen(sys2$A)
+    e1 <- nonsingular_eigen(sys1$A)
+    e2 <- nonsingular_eigen(sys2$A)
     X1 <- crossprod(sys1$C %*% e1$vectors, sys1$C %*% e1$vectors)
     X1 <- X1 / (gamma - outer(e1$values, e1$values, "+"))
     X2 <- crossprod(sys2$C %*% e2$vectors, sys2$C %*% e2$vectors)
     X2 <- X2 / (gamma - outer(e2$values, e2$values, "+"))
     X12 <- crossprod(sys1$C %*% e1$vectors, sys2$C %*% e2$vectors)
     X12 <- X12 / (gamma - outer(e1$values, e2$values, "+"))
-    Q1 <- solve(e1$vectors, sys1$B)
-    Q2 <- solve(e2$vectors, sys2$B)
+    Q1 <- e1$inv_vectors %*% sys1$B
+    Q2 <- e2$inv_vectors %*% sys2$B
     Z1 <- Re(crossprod(Q1, X1 %*% Q1))
     Z2 <- Re(crossprod(Q2, X2 %*% Q2))
     Z12 <- Re(crossprod(Q1, X12 %*% Q2))
