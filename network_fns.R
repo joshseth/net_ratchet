@@ -2,6 +2,7 @@ library(Matrix)
 library(expm)
 
 rand_realization <- function (sys, std, m) {
+    # generate a random equivalent system from the Kalman decomposition
     # m is the number of extra dimensions
     n0 <- nrow(sys$A);
     bn0 <- ncol(sys$B);
@@ -63,21 +64,69 @@ delete_gene <- function(sys, d)
     return(del_sys)
 }
 
+new_gene <- function (sys)
+{
+  sys$A <- rbind(cbind(sys$A, 
+                       matrix(rep(0, nrow(sys$A)), nrow= nrow(sys$A), ncol=1)), 
+                 matrix(0, nrow = 1, ncol = ncol(sys$A) + 1))
+  sys$B <- rbind(sys$B, 0)
+  sys$C <- cbind(sys$C, 0)
+  return(sys)
+}
+
+mutate_system <- function (sys, p_mut, sigma_mut) 
+{
+  # mutate random entries in A, B, and C:
+  # choose each entry with probability p_mut
+  # and change each by Normal(0, sigma_mut).
+  mut_A <- (rbinom(length(sys$A), size=1, prob=p_mut) == 1)
+  if (any(mut_A)) 
+  {
+    sys$A[mut_A] <- sys$A[mut_A] + rnorm(sum(mut_A), 0, sigma_mut)
+  }
+  mut_B <- (rbinom(length(sys$B), size=1, prob=p_mut) == 1)
+  if (any(mut_B))
+  {
+    sys$B[mut_B] <- sys$B[mut_B] + rnorm(sum(mut_B), 0, sigma_mut)
+  }
+  mut_C <- (rbinom(length(sys$C), size=1, prob=p_mut) == 1)
+  if (any(mut_C))
+  {
+    sys$C[mut_C] <- sys$C[mut_C] + rnorm(sum(mut_C), 0, sigma_mut)
+  }
+  return(sys)
+}
+
 ###################################
 
-h <- function (t, M, BK, CK) 
+h <- function (t, sys)
+{
+  sapply(t, function (tt) sys$C %*% expm::expm(tt*sys$A) %*% sys$B) 
+}
+
+spectral_h <- function (t, sys)
 { 
-    sapply(t, function (tt) CK %*% expm::expm(tt*M) %*% BK) 
+  # NOTE: this only works for one-dimensional output
+  etA <- eigen(t(sys$A))
+  out <- sapply(t, function (tt) {
+             ((sys$C %*%
+                         Re(solve(t(etA$vectors), 
+                                  t(sweep(etA$vectors, 2, exp(tt * etA$values), "*")))))
+              %*% sys$B)
+                               } )
+  return(out)
 }
 
-Df <- function (A, t, BK, CK, optimal_h) 
+
+Df <- function (t, sys, optimal_h) 
 {
-    exp(-t/(4*pi)) * ( h(t, M=A, BK=BK, CK=CK) - optimal_h(t) )^2
+    exp(-t/(4*pi)) * ( h(t, sys) - optimal_h(t) )^2
 }
 
-D <- function (A, BK, CK, optimal_h, upper=10, ...) 
+D <- function (sys, optimal_h, upper=10, ...) 
 {
-    f <- function (t) { Df(A, t, BK, CK, optimal_h) }
+    f <- function (t) { Df(t, sys, optimal_h) }
     integrate(f, lower=0, upper=upper, ...)$value
 }
+
 

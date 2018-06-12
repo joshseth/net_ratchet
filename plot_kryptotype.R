@@ -28,13 +28,14 @@ if (!exists("sys0")) {
 #system_sigma <- 0.001
 max_time <- 10
 sys1 <- rand_realization(sys0, system_sigma, extra_dims)
-K <- diag(ncol(sys1$C))
+sysK <- sys1
+sysK$C <- diag(ncol(sys1$C))
 
 tt <- seq(0, max_time, length.out=400)
 
 pdf(file=outfile, width=8, height=4, pointsize=10)
 
-kryp <- h(tt, sys1$A, sys1$B, K)
+kryp <- h(tt, sysK)
 
 layout(matrix(c(1,1,1,2), nrow=1))
 matplot(tt, t(kryp) , type = 'l', ylim=c(-6,6), main=sprintf("Kryptotype: %s", basedir))

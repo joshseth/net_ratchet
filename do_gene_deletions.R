@@ -42,7 +42,7 @@ for (j in 1:nrow(sys1$A))
     dsys1 <- delete_gene(sys1, j)
     systems[[j]] <- dsys1
     # TODO: need to change upper in D if we change max_time
-    sf[j] <- D(dsys1$A, dsys1$B, dsys1$C, sys0$optimal_h)
+    sf[j] <- D(dsys1, sys0$optimal_h)
 }
 
 pdf(file=outfile, width=8, height=6, pointsize=10)
