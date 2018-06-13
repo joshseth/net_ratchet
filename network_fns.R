@@ -152,13 +152,13 @@ D <- function (sys1, sys2, gamma=1/(4*pi), upper=10) {
     e2 <- nonsingular_eigen(sys2$A)
     esum_1 <- (gamma - outer(e1$values, e1$values, "+"))
     X1 <- crossprod(sys1$C %*% e1$vectors, sys1$C %*% e1$vectors)
-    X1 <- X1 * (1 - exp(-esum1 * upper)) / esum_1
+    X1 <- X1 * (1 - exp(-esum_1 * upper)) / esum_1
     X2 <- crossprod(sys2$C %*% e2$vectors, sys2$C %*% e2$vectors)
     esum_2 <- (gamma - outer(e2$values, e2$values, "+"))
-    X2 <- X2 * (1 - exp(-esum2 * upper)) / esum_2
+    X2 <- X2 * (1 - exp(-esum_2 * upper)) / esum_2
     X12 <- crossprod(sys1$C %*% e1$vectors, sys2$C %*% e2$vectors)
     esum_12 <- (gamma - outer(e1$values, e2$values, "+"))
-    X12 <- X12 * (1 - exp(-esum12 * upper)) / esum_12
+    X12 <- X12 * (1 - exp(-esum_12 * upper)) / esum_12
     Q1 <- e1$inv_vectors %*% sys1$B
     Q2 <- e2$inv_vectors %*% sys2$B
     Z1 <- Re(crossprod(Q1, X1 %*% Q1))
@@ -166,3 +166,21 @@ D <- function (sys1, sys2, gamma=1/(4*pi), upper=10) {
     Z12 <- Re(crossprod(Q1, X12 %*% Q2))
     return(sum(diag(Z1) + diag(Z2) - 2 * diag(Z12)))
 }
+
+# pop is a list/population of systems (A,B,C)
+# E.g. load("fossil_00100.Rdata") will load ''pop''
+
+error_D <- function(pop)
+{
+    error <- rep(0, length(pop))
+    for (i in 1:length(pop))
+    {
+        D1 <- D(pop[[i]], sys0)
+        D2 <- orig_D(pop[[i]], sys0$optimal_h)
+        error[[i]] <- abs(D1 - D2)
+    }
+
+    mean_error <- mean(error)
+    return(mean_error)
+}
+
