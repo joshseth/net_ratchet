@@ -180,7 +180,7 @@ error_D <- function(pop)
         error[[i]] <- abs(D1 - D2)
     }
 
-    mean_error <- mean(error)
-    return(mean_error)
+    #mean_error <- mean(error)
+    return(error)
 }
 
