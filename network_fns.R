@@ -145,7 +145,7 @@ nonsingular_eigen <- function (A, tol=sqrt(.Machine$double.eps))
     return(eA)
 }
 
-D <- function (sys1, sys2, gamma=1.0) {
+D <- function (sys1, sys2, gamma=1.0/(4*pi)) {
     e1 <- nonsingular_eigen(sys1$A)
     e2 <- nonsingular_eigen(sys2$A)
     X1 <- crossprod(sys1$C %*% e1$vectors, sys1$C %*% e1$vectors)
