@@ -145,15 +145,20 @@ nonsingular_eigen <- function (A, tol=sqrt(.Machine$double.eps))
     return(eA)
 }
 
-D <- function (sys1, sys2, gamma=1.0) {
+D <- function (sys1, sys2, gamma=1/(4*pi), upper=10) {
+    # compute *in the case that sys1$A and sys2$A are diagonalizable*,
+    # \int_0^\infty exp(-(t/gamma)^2) |C0 exp(t A0) B0 - C1 exp(t A1) B1|^2 dt
     e1 <- nonsingular_eigen(sys1$A)
     e2 <- nonsingular_eigen(sys2$A)
+    esum_1 <- (gamma - outer(e1$values, e1$values, "+"))
     X1 <- crossprod(sys1$C %*% e1$vectors, sys1$C %*% e1$vectors)
-    X1 <- X1 / (gamma - outer(e1$values, e1$values, "+"))
+    X1 <- X1 * (1 - exp(-esum1 * upper)) / esum_1
     X2 <- crossprod(sys2$C %*% e2$vectors, sys2$C %*% e2$vectors)
-    X2 <- X2 / (gamma - outer(e2$values, e2$values, "+"))
+    esum_2 <- (gamma - outer(e2$values, e2$values, "+"))
+    X2 <- X2 * (1 - exp(-esum2 * upper)) / esum_2
     X12 <- crossprod(sys1$C %*% e1$vectors, sys2$C %*% e2$vectors)
-    X12 <- X12 / (gamma - outer(e1$values, e2$values, "+"))
+    esum_12 <- (gamma - outer(e1$values, e2$values, "+"))
+    X12 <- X12 * (1 - exp(-esum12 * upper)) / esum_12
     Q1 <- e1$inv_vectors %*% sys1$B
     Q2 <- e2$inv_vectors %*% sys2$B
     Z1 <- Re(crossprod(Q1, X1 %*% Q1))
