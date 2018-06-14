@@ -1,0 +1,2 @@
+- cut off scale at +/- min(max(abs(), and 6)
+- put phenotype plot next to kryptotype plot

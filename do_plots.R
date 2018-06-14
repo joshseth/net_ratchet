@@ -120,12 +120,11 @@ eigen_systems <- lapply(lapply(systems, "[[", "A"), eigen)
 eigen_values <- c(minimal_eigen$values,
                   unlist(lapply(eigen_systems, "[[", "values")))
 sys_cols <- c(rep("black", nrow(sys0$A)),
-              adjustcolor(rainbow(nreps), 0.8))
+              rep(adjustcolor(rainbow(nreps), 0.8), each=nrow(systems[[1]]$A)))
 
 pdf(file=eig_outfile, width=6, height=6, pointsize=10)
 sub <- sprintf("system sigma=%0.4f, size=%d", system_sigma, extra_dims)
-plot(Re(eigen_values), Im(eigen_values), asp=1, pch=20,
-     col=rep(sys_cols, each=nrow(systems[[1]]$A)),
+plot(Re(eigen_values), Im(eigen_values), asp=1, pch=20, col=sys_cols,
      xlab="Re(eigenvalue)", ylab="Im(eigenvalue)",
      main=sprintf("Eigenvalues: %s", basedir))
 mtext(sub, side=3, line=0.2)
