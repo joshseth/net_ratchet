@@ -13,7 +13,7 @@ then
     exit 1
 fi
 
-./make_plots.sh $SYSDIR 4 0.1
+./make_plots.sh $SYSDIR 4 0.1 3
 
 EVOLDIR=$(./evolve_population.R $SYSDIR 20 10 0.1 0.01 0.05 0.05)
 echo $EVOLDIR
