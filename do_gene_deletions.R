@@ -1,16 +1,18 @@
 #!/usr/bin/env Rscript
 
 usage <- "
-    ./do_gene_deletions.R (name of directory with params.R in) (number of extra dimensions)
+    ./do_gene_deletions.R (name of directory with params.R in) (number of extra dimensions) (system sigma)
 "
 
 args <- if (interactive()) { scan(what='') } else { commandArgs(TRUE) }
-if (length(args) != 2) {
+if (length(args) != 3) {
     stop(usage)
 }
 
 basedir <- args[1]
 extra_dims <- as.integer(args[2])
+system_sigma <- as.numeric(args[3])
+
 paramfile <- file.path(basedir, "params.R")
 outdir <- file.path(basedir, "deletion_phenotypes")
 dir.create(outdir, showWarnings=FALSE)
@@ -33,7 +35,6 @@ if (!exists("sys0")) {
 
 systems <- list()
 sf <- rep(0,50)
-system_sigma <- 0.001
 sys1 <- rand_realization(sys0, system_sigma, extra_dims)
 max_time <- 10
 
@@ -52,6 +53,6 @@ pdf(file=outfile, width=8, height=6, pointsize=10)
     mtext(sprintf("system sigma=%0.4f, extra dims=%d",
                   system_sigma, extra_dims), side=3, line=0.2)
 
-dev.off()
+invisible(dev.off())
 
 

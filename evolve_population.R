@@ -64,3 +64,5 @@ for (generations in 1:max_generation)
                   pop=pop)
     save(pop, file = outfile)
 }
+
+cat(outdir)

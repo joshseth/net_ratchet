@@ -1,5 +1,5 @@
 library(Matrix)
-library(expm)
+suppressMessages(library(expm))
 
 rand_realization <- function (sys, std, m) {
     # generate a random equivalent system from the Kalman decomposition

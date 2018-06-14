@@ -65,4 +65,4 @@ writeLines("sys0 <- ", outcon)
 dput(sys0, outcon)
 close(outcon)
 
-cat(sprintf("Wrote out new system to %s\n", outdir))
+cat(outdir)

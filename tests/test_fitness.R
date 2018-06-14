@@ -12,7 +12,7 @@ error_D <- function(pop, sys0)
         D1 <- D(pop[[i]], sys0)
         D2 <- orig_D(pop[[i]], sys0$optimal_h)
         error <- abs(D1 - D2)
-        if (error > 1e-12) {
+        if (error > 1e-8) {
             ret <- pop[[i]]
             break
         }
