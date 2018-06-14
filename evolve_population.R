@@ -34,7 +34,6 @@ outfile <- file.path(outdir, "evolsim_params.R")
 
 source("network_fns.R")
 source("plotting_fns.R")
-source("evo_kal.R")
 source(paramfile)  # defines sys0
 
 if (!exists("sys0")) {

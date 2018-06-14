@@ -117,11 +117,11 @@ spectral_h <- function (t, sys)
   return(out)
 }
 
-orig_D <- function (sys, optimal_h, upper=10, ...) 
+orig_D <- function (sys, optimal_h, gamma=1/(4*pi), upper=10, ...) 
 {
     f <- function (t) 
     {
-        exp(-t/(4*pi)) * ( h(t, sys) - optimal_h(t) )^2
+        exp(-t*gamma) * ( h(t, sys) - optimal_h(t) )^2
     }
     integrate(f, lower=0, upper=upper, ...)$value
 }
@@ -129,18 +129,11 @@ orig_D <- function (sys, optimal_h, upper=10, ...)
 nonsingular_eigen <- function (A, tol=sqrt(.Machine$double.eps))
 {
     eA <- eigen(A)
-    smalls <- (Mod(eA$values) < tol)
-    if (all(smalls)) 
+    eA$inv_vectors <- MASS::ginv(eA$vectors)
+    if (any(Mod(eA$vectors %*% diag(eA$values, nrow=nrow(A)) %*% eA$inv_vectors - A) > 1e-12))
     {
-        eA$values[] <- 0.0
-        eA$vectors <- diag(nrow(A))
-        eA$inv_vectors <- diag(nrow(A))
-    } 
-    else 
-    {
-        eA$vectors <- eA$vectors[,!smalls,drop=FALSE]
-        eA$values <- eA$values[!smalls]
-        eA$inv_vectors <- MASS::ginv(eA$vectors)
+        # something is wrong
+        eA <- NULL
     }
     return(eA)
 }
@@ -150,6 +143,16 @@ D <- function (sys1, sys2, gamma=1/(4*pi), upper=10) {
     # \int_0^\upper exp(-(t*gamma)) |C0 exp(t A0) B0 - C1 exp(t A1) B1|^2 dt
     e1 <- nonsingular_eigen(sys1$A)
     e2 <- nonsingular_eigen(sys2$A)
+    if (is.null(e1) || is.null(e2))
+    {
+        # we are non-diagonalizable (or something else bad)
+        f <- function (t) 
+        {
+            exp(-t*gamma) * ( h(t, sys1) - h(t, sys2) )^2
+        }
+        out <- integrate(f, lower=0, upper=upper)$value
+        return(out)
+    }
     esum_1 <- (gamma - outer(e1$values, e1$values, "+"))
     X1 <- crossprod(sys1$C %*% e1$vectors, sys1$C %*% e1$vectors)
     X1 <- X1 * (1 - exp(-esum_1 * upper)) / esum_1
@@ -167,20 +170,49 @@ D <- function (sys1, sys2, gamma=1/(4*pi), upper=10) {
     return(sum(diag(Z1) + diag(Z2) - 2 * diag(Z12)))
 }
 
-# pop is a list/population of systems (A,B,C)
-# E.g. load("fossil_00100.Rdata") will load ''pop''
 
-error_D <- function(pop)
+## Evolution
+
+evolve <- function(sys0, 
+                   population_size,
+                   max_generation,
+                   p_mut=0.1,
+                   sigma_mut=0.1,
+                   p_del=0.1,
+                   p_new=0.1,
+                   pop=rep(list(c(sys0, list(fitness=1.0))), population_size)
+                   ) 
 {
-    error <- rep(0, length(pop))
-    for (i in 1:length(pop))
+  next_gen <- vector(mode="list", length=population_size)
+  fitness_fn <- function (sys) {
+      exp(-(D(sys, sys0))^2)
+  }
+
+  for (generations in 1:max_generation)
+  {
+    for (i in 1:population_size)
     {
-        D1 <- D(pop[[i]], sys0)
-        D2 <- orig_D(pop[[i]], sys0$optimal_h)
-        error[[i]] <- abs(D1 - D2)
+      # mutate coefficients
+      pop[[i]] <- mutate_system(pop[[i]], p_mut=0.1, sigma_mut=0.1)
+
+      # gene deletions
+      if ((rbinom(1, size=1, prob=p_del) == 1) && (nrow(pop[[i]]$A) > 1))
+      {
+        d <- sample(1:nrow(pop[[i]]$A), 1)
+        pop[[i]] <- delete_gene(pop[[i]], d)
+      }
+
+      # add a new (zero'd out) gene
+      if (rbinom(1, size=1, prob=p_new) == 1)
+      {
+        pop[[i]] <- new_gene(pop[[i]])
+      }
+      pop[[i]]$fitness <- fitness_fn(pop[[i]])
     }
-
-    #mean_error <- mean(error)
-    return(error)
+    fitnesses <- sapply(pop, "[[", "fitness")
+    next_indices <- sample.int(population_size, replace=TRUE, prob=fitnesses)
+    next_gen <- pop[next_indices]
+    pop <- next_gen
+  }
+  return(pop)
 }
-
