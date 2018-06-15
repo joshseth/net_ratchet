@@ -43,10 +43,19 @@ for (x in c(mut_outfile, del_outfile, kry_outfile, eig_outfile))
 
 # the basic phentype plotting setup
 plot_systems <- function (systems, file, main="", sub="", ...) {
-    pdf(file=file, width=8, height=4, pointsize=10)
+    pdf(file=file, width=8, height=6, pointsize=10)
+    layout(1:2, heights=c(1,1.1))
     for (j in seq_along(systems))
     {
-        plot_many_phenotypes(systems[[j]]$systems, systems[[j]]$D, max_time=max_time, main=main)
+        # on natural scale
+        opar <- par(mar=c(par("mar"), 1.1)[c(5,2,3,4)])
+        plot_many_phenotypes(systems[[j]]$systems, systems[[j]]$D, max_time=max_time, main=main,
+                             optimal_sys=sys0, xlab='', xaxt='n')
+        mtext(paste(sub, sprintf("rep:%d", j)),  side=3, line=0.2)
+        par(opar)
+        # on rescaled
+        plot_many_phenotypes(systems[[j]]$systems, systems[[j]]$D, max_time=max_time, main=main,
+                             optimal_sys=sys0, opt_ylim=TRUE)
         mtext(paste(sub, sprintf("rep:%d", j)),  side=3, line=0.2)
     }
     invisible(dev.off())
@@ -104,11 +113,12 @@ plot_systems(deleted_systems, file=del_outfile,
 # Plot kryptotypes
 cat("Plotting kryptotypes.\n")
 sub <- sprintf("system sigma=%0.4f, size=%d", system_sigma, extra_dims)
-pdf(file=kry_outfile, width=8, height=4, pointsize=10)
+pdf(file=kry_outfile, width=8, height=6, pointsize=10)
     for (j in seq_along(systems))
     {
         plot_kryptotypes(systems[[j]], max_time=max_time, 
-                         main=sprintf("Kryptotype: %s", basedir))
+                         main=sprintf("Phenotype and kryptotype: %s", basedir),
+                         phenotypes=TRUE)
         mtext(paste(sub, sprintf("rep:%d", j)),  side=3, line=0.2)
     }
 invisible(dev.off())

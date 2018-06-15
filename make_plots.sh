@@ -29,7 +29,8 @@ fi
 
 for K in $(seq $MAXDIM)
 do
-    ./do_plots.R $SYSDIR $K $SIGMA $NREPS
+    echo "Doing plots for K=$K" > /dev/stderr
+    ./do_plots.R $SYSDIR $K $SIGMA $NREPS > /dev/stderr
 done
 
 pdfjoin --outfile $SYSDIR/kryptotypes.pdf $SYSDIR/kryptotypes/*.pdf &>/dev/null \
