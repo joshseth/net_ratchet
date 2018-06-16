@@ -101,7 +101,10 @@ mutate_system <- function (sys, p_mut, sigma_mut)
 
 h <- function (t, sys)
 {
-  sapply(t, function (tt) sys$C %*% expm::expm(tt*sys$A) %*% sys$B) 
+  # we do this rather than sapply( ) so that it returns a consistent object
+  # if the output is one- or multi-dimensional
+  # But note this does NOT work if input is multi-dimensional
+  do.call(rbind, lapply(lapply(t, function (tt) sys$C %*% expm::expm(tt*sys$A) %*% sys$B), as.vector))
 }
 
 spectral_h <- function (t, sys)
