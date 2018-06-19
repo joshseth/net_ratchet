@@ -210,11 +210,17 @@ evolve <- function(sys0,
       #  pop[[i]] <- delete_gene(pop[[i]], d)
       #}
        del_sys <- (rbinom(nrow(pop[[i]]$A), size=1, prob=p_del))
-       if (any(del_sys) && (any(del_sys) == 0) )
-       {
-       del_sys <- del_sys * seq(1,nrow(pop[[i]]$A))
-       pop[[i]]$A <- delete_gene(pop[[i]], del_sys)
-       }
+      if(sum(del_sys) > 0)
+      {
+        for (del_g in 1:sum(del_sys))
+        {
+            if (nrow(pop[[i]]$A) > 1)
+            {
+              d <- sample(1:nrow(pop[[i]]$A), 1)
+              pop[[i]]$A <- delete_gene(pop[[i]], d)
+            }
+        }
+      }
             pop[[i]]$fitness <- fitness_fn(pop[[i]])
     }
     fitnesses <- sapply(pop, "[[", "fitness")
