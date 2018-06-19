@@ -27,7 +27,8 @@ s_outfile <- file.path(basedir, sprintf("%s-empirical_s_sigmamut_%f.Rdata", base
 sDEL_outfile <- file.path(basedir, sprintf("%s-empirical_sDEL.Rdata", basedir))
 
 # Empirical s_n for a random realization ranging in network size from n=min to n=max_dim.
-s_estimate <- data.frame(mean_fitness_cost = rep(0, max_dim), sd_fitness_cost = rep(0, max_dim))
+s_estimate <-
+  data.frame(mean_fitness_cost = rep(0, max_dim), sd_fitness_cost = rep(0, max_dim))
 for (extra_dims in 0:max_dim)
 {
     nreps <- 50
@@ -58,4 +59,35 @@ for (extra_dims in 0:max_dim)
     s_estimate$mean_fitness_cost[extra_dims] <- mean(mutant_fitness_cost)
     s_estimate$sd_fitness_cost[extra_dims] <- sd(mutant_fitness_cost)
 }
+
+
+do_deletions <- function (sys1)
+{
+    mod_sys <- list()
+    Dvec <- rep(NA, length.out=nrow(sys1$A))
+    for (j in 1:nrow(sys1$A))
+    {
+        dsys1 <- delete_gene(sys1, j)
+        mod_sys[[j]] <- dsys1
+        Dvec[j] <- D(dsys1, sys0)
+    }
+    return(list(systems=mod_sys, D=Dvec))
+}
+
+sDEL_estimate <-
+  data.frame(mean_fitness_cost = rep(0, max_dim), sd_fitness_cost = rep(0, max_dim) )
+for (extra_dims in 0:max_dim)
+{
+    nreps <- 50
+    deletion_fitness_cost <- matrix(0, ncol=(length(sys0$B)+extra_dims), nrow=nreps)
+    for (i in 1:nreps)
+    {
+    sys <- rand_realization(sys0, system_sigma, extra_dims)
+    deleted_systems <- do_deletions(sys) 
+    deletion_fitness_cost[i,] <- 1 - exp(-deleted_systems$D)
+    }
+    sDEL_estimate$mean_fitness_cost[extra_dims] <- mean(deletion_fitness_cost)
+    sDEL_estimate$sd_fitness_cost[extra_dims] <- sd(deletion_fitness_cost)
+}
+
 
