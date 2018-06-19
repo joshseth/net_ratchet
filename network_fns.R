@@ -64,13 +64,13 @@ delete_gene <- function(sys, d)
     return(del_sys)
 }
 
-new_gene <- function (sys)
+new_genes <- function (sys, new_gs)
 {
   sys$A <- rbind(cbind(sys$A, 
-                       matrix(rep(0, nrow(sys$A)), nrow= nrow(sys$A), ncol=1)), 
-                 matrix(0, nrow = 1, ncol = ncol(sys$A) + 1))
-  sys$B <- rbind(sys$B, 0)
-  sys$C <- cbind(sys$C, 0)
+                       matrix(rep(0, nrow(sys$A)), nrow= nrow(sys$A), ncol=new_gs)), 
+                 matrix(0, nrow = 1, ncol = ncol(sys$A) + new_gs))
+  sys$B <- rbind(sys$B, matrix(0, ncol=1, nrow=new_gs))
+  sys$C <- cbind(sys$C, matrix(0, nrow=1, ncol=new_gs))
   return(sys)
 }
 
@@ -197,20 +197,25 @@ evolve <- function(sys0,
     {
       # mutate coefficients
       pop[[i]] <- mutate_system(pop[[i]], p_mut=0.1, sigma_mut=0.1)
-
-      # gene deletions
-      if ((rbinom(1, size=1, prob=p_del) == 1) && (nrow(pop[[i]]$A) > 1))
-      {
-        d <- sample(1:nrow(pop[[i]]$A), 1)
-        pop[[i]] <- delete_gene(pop[[i]], d)
-      }
-
       # add a new (zero'd out) gene
-      if (rbinom(1, size=1, prob=p_new) == 1)
+      add_genes <- rbinom(nrow(pop[[i]]$A), size=1, prob=p_new)
+      if(any(add_genes) ==TRUE)
       {
-        pop[[i]] <- new_gene(pop[[i]])
+        pop[[i]] <- new_genes(pop[[i]], sum(add_genes))
       }
-      pop[[i]]$fitness <- fitness_fn(pop[[i]])
+      # gene deletions
+      #if ((rbinom(1, size=1, prob=p_del) == 1) && (nrow(pop[[i]]$A) > 1))
+      #{
+      #  d <- sample(1:nrow(pop[[i]]$A), 1)
+      #  pop[[i]] <- delete_gene(pop[[i]], d)
+      #}
+       del_sys <- (rbinom(nrow(pop[[i]]$A), size=1, prob=p_del))
+       if (any(del_sys) && (any(del_sys) == 0) )
+       {
+       del_sys <- del_sys * seq(1,nrow(pop[[i]]$A))
+       pop[[i]]$A <- delete_gene(pop[[i]], del_sys)
+       }
+            pop[[i]]$fitness <- fitness_fn(pop[[i]])
     }
     fitnesses <- sapply(pop, "[[", "fitness")
     next_indices <- sample.int(population_size, replace=TRUE, prob=fitnesses)
