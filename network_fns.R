@@ -68,7 +68,7 @@ new_genes <- function (sys, new_gs)
 {
   sys$A <- rbind(cbind(sys$A, 
                        matrix(rep(0, nrow(sys$A)), nrow= nrow(sys$A), ncol=new_gs)), 
-                 matrix(0, nrow = 1, ncol = ncol(sys$A) + new_gs))
+                 matrix(0, nrow = new_gs, ncol = ncol(sys$A) + new_gs))
   sys$B <- rbind(sys$B, matrix(0, ncol=1, nrow=new_gs))
   sys$C <- cbind(sys$C, matrix(0, nrow=1, ncol=new_gs))
   return(sys)
@@ -188,7 +188,7 @@ evolve <- function(sys0,
 {
   next_gen <- vector(mode="list", length=population_size)
   fitness_fn <- function (sys) {
-      exp(-(D(sys, sys0))^2)
+      exp(-(D(sys, sys0)))
   }
 
   for (generations in 1:max_generation)
@@ -199,7 +199,7 @@ evolve <- function(sys0,
       pop[[i]] <- mutate_system(pop[[i]], p_mut=0.1, sigma_mut=0.1)
       # add a new (zero'd out) gene
       add_genes <- rbinom(nrow(pop[[i]]$A), size=1, prob=p_new)
-      if(any(add_genes) ==TRUE)
+      if(sum(add_genes)>=1)
       {
         pop[[i]] <- new_genes(pop[[i]], sum(add_genes))
       }
@@ -210,15 +210,12 @@ evolve <- function(sys0,
       #  pop[[i]] <- delete_gene(pop[[i]], d)
       #}
        del_sys <- (rbinom(nrow(pop[[i]]$A), size=1, prob=p_del))
-      if(sum(del_sys) > 0)
+      if(sum(del_sys) >= 1 && any(del_sys == 0))
       {
         for (del_g in 1:sum(del_sys))
         {
-            if (nrow(pop[[i]]$A) > 1)
-            {
               d <- sample(1:nrow(pop[[i]]$A), 1)
               pop[[i]] <- delete_gene(pop[[i]], d)
-            }
         }
       }
             pop[[i]]$fitness <- fitness_fn(pop[[i]])
