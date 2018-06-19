@@ -1,0 +1,137 @@
+\documentclass{article}
+\usepackage{amsmath, amssymb, color, xcolor, amsthm}
+\usepackage{graphicx, wrapfig, float, caption, dsfont, bbm, xfrac, setspace}
+\usepackage{fullpage}
+\usepackage[backref=page, hidelinks, colorlinks=true, citecolor=blue!60!black!100]{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, shapes}
+\usepackage{caption, subcaption}
+\usepackage{natbib} % gives us \citet: Author (year) and \citep: (Author; year)
+\usepackage{authblk}
+\usepackage{lineno}
+\usepackage{multicol}
+\usepackage[bottom]{footmisc}
+
+
+
+\begin{document}
+
+\begin{itemize}
+\item Describe entropy/ratchet/balance
+\item quantify deletion bias
+\item quantify entropic force
+\item quantify selective pressures
+\item implement evolutionary simulation to check above $\uparrow$. 
+\item How does equilibrium network size depend on the parameters $p_{\text{mut}}$, $p_{\text{del}}$, $\alpha = p_{\text{new}}/p_{\text{del}}$, $\sigma_{\text{mut}}$, $N$?
+
+\begin{tabular}{l | c | c | r}
+\hline
+parameter & minimum & default & maximum \\
+\hline
+$p_{\text{mut}}$ & $10^{-4}$ & $10^{-3}$ & $10^{-1}$ \\
+\hline
+$p_{\text{del}}$ & $10^{-6}$ & $10^{-4}$ & $10^{-1}$ \\
+\hline
+$\alpha$ & $10^{-2}$ & $10^{-1}$ & $1$ \\
+\hline
+$\sigma_{\text{mut}}$ & $10^{-4}$ & & $10^{-1}$ \\
+\hline
+$N$ & & $1000$ & \\
+\hline
+\end{tabular}
+
+\item different systems
+
+\item change code to make $p_{\text{add}}$ and $p_{\text{del}}$ per gene instead of per system. 
+
+\item possible experiment: compare equilibrium sizes of systems with a range of large real and negative real eigenvalues. Do systems with large real and positive eigenvalues tend to be smaller due to numerical instability?
+\end{itemize}
+
+\paragraph{Deletion bias}
+
+\begin{figure}[H]
+\includegraphics[width=0.5\linewidth]{reducibility_plot}
+\caption{Network reducibility. Where $\alpha$ between $(0,1)$ on the y-axis, determines equilibrium system size for deletion bias. For instance, at $\alpha = 0.5$, we'd expect system sizes to be around $n=20$.}
+
+\end{figure}
+
+$\beta :=$ probability a deletion is neutral-ish. 
+
+At equilibrium: rate of deletion $\approx$ the rate of new genes. 
+
+$p_{\text{del}} \beta \approx p_{\text{new}} \qquad i.e. \beta \approx \alpha$.
+
+\paragraph{Load}
+
+System size $n$
+
+mutation cost $s$
+
+Strong mutation: $s \approx 1$
+
+Weak selection: mean offspring fitness relative to parent $= s p_{\text{mut}} n^2 = \delta_{\text{add}}$
+
+Where $\delta_{\text{add}}$ is the cost of adding a dimension to a system.
+
+\paragraph{Analytical description}
+Can we find a function that, given the current mean size $n_T$ of a population of systems, describes what is the expected size in the next generation/offspring $n_{T+1}$?
+
+\begin{tabular}{l | c | r}
+\hline
+Offspring size & \% & Mean fitness relative to parent \\
+\hline
+$n-1$ & $n p_{\text{del}}$ & $1 - s^{\text{DEL}}_{n}$ \\
+\hline
+$n$ & $1 - (p_{\text{del}} + p_{\text{add}})n$ & $1 - p_{\text{mut}} n^2 s_n$ \\
+\hline
+$n+1$ & $n p_{\text{add}}$ & $1 - p_{\text{mut}}(n + 1)^2 s_{n+1}$ \\ 
+\hline
+\end{tabular}
+\begin{itemize}
+\item Mean fitness of offspring:
+
+$= (1 - p_{\text{mut}} n^2 s_n) + n p_{\text{del}} (1 - s^{\text{DEL}}_{n} - (1 - p_{\text{mut}} n^2 s_n)) + n p_{\text{add}} (1 - p_{\text{mut}}(n + 1)^2 s_{n+1}) - (1 - p_{\text{mut}} n^2 s_n)$ 
+
+$= 1 - p_{\text{mut}} n^2 s_n - n p_{\text{del}} (s^{\text{DEL}}_{n} - p_{\text{mut}}n^2 s_n) - n p_{\text{add}} p_{\text{mut}} ((n+1)^2 s_{n+1} - n^2 s_n)$
+
+\item Mean network size in offspring
+
+$ = \frac{\sum_{\text{sizes}} (\% \text{size}) \times (\text{fitness at size}) \times \text{size})}{\sum_{\text{sizes}} (\% \text{size}) \times (\text{fitness at size})}$
+
+$= n + \frac{n p_{\text{add}} (1 - p_{\text{mut}}(n+1)^2 s_{n+1}) - n p_{\text{del}} (1 - s^{\text{DEL}}_{n})}{\bar{w}}$
+
+$= \frac{(n-1) a_{n-1} + n a_n + (n+1) a_{n+1}}{a_{n-1} + a_n + a_{n+1}} = n + \frac{a_{n+1} - a_{n-1}}{a_{n+1}+a_n + a_{n-1}}$
+
+\item So: network size will go up if this is $>n$,
+
+that is if
+
+$\not n p_{\text{add}} (1 - p_{\text{mut}}(n+1)^2 s_{n+1}) > \not n p_{\text{del}} (1 - s_n^{\text{\text{del}}})$
+
+that is,
+
+$\alpha = \frac{p_{\text{add}}}{p_{\text{del}}} > \frac{1 - s^{\text{DEL}}_{n}}{1 - p_{\text{mut}}(n-1)^2 s_{n+1}}$
+
+$\approx 1 + p_{\text{mut}} (n+1)^2 s_{n+1} - s^{\text{DEL}}_{n}$
+
+To be more exact:
+
+$\alpha > \frac{1 -s^{\text{DEL}}_{n}}{1 - p_{\text{mut}} ((n+1)^2 s_{n+1} - (n-1)^2 s_{n-1})}$
+
+$\approx \frac{1 - s^{DEL}_{n}}{1 - p_{\text{mut}} 4ns_n}$
+%$\approx 1 + p_{\text{mut}} 4ns_n - s^{\text{DEL}}_{n}$.
+\end{itemize}
+
+
+\begin{equation}
+\mathbb{E} \left[ n_{t+1} \right] \approx n_t \left( 1 + \frac{p_{\text{add}} \left(1 - p_{\text{mut}}4ns_n\right) - p_{\text{del}} \left(1 - s^{\text{DEL}}_{n}\right)}{\bar{w}} \right)
+\end{equation}
+
+For any type of system (e.g. oscillator), we need to find empirically, $s^{\text{DEL}}_n$ and $s_n$. We also need to know how this changes with $\sigma_{\text{mut}}$. 
+
+
+
+
+
+
+\end{document}
