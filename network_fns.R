@@ -217,7 +217,7 @@ evolve <- function(sys0,
             if (nrow(pop[[i]]$A) > 1)
             {
               d <- sample(1:nrow(pop[[i]]$A), 1)
-              pop[[i]]$A <- delete_gene(pop[[i]], d)
+              pop[[i]] <- delete_gene(pop[[i]], d)
             }
         }
       }
