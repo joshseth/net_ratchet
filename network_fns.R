@@ -179,16 +179,16 @@ D <- function (sys1, sys2, gamma=1/(4*pi), upper=10) {
 evolve <- function(sys0, 
                    population_size,
                    max_generation,
-                   p_mut=0.1,
-                   sigma_mut=0.1,
-                   p_del=0.1,
-                   p_new=0.1,
+                   p_mut,
+                   sigma_mut,
+                   p_del,
+                   p_new,
                    pop=rep(list(c(sys0, list(fitness=1.0))), population_size)
                    ) 
 {
   next_gen <- vector(mode="list", length=population_size)
   fitness_fn <- function (sys) {
-      exp(-(D(sys, sys0)))
+      exp(-(D(sys, sys0)/4))
   }
 
   for (generations in 1:max_generation)
@@ -196,7 +196,7 @@ evolve <- function(sys0,
     for (i in 1:population_size)
     {
       # mutate coefficients
-      pop[[i]] <- mutate_system(pop[[i]], p_mut=0.1, sigma_mut=0.1)
+      pop[[i]] <- mutate_system(pop[[i]], p_mut, sigma_mut)
       # add a new (zero'd out) gene
       add_genes <- rbinom(nrow(pop[[i]]$A), size=1, prob=p_new)
       if(sum(add_genes)>=1)
