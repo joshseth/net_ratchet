@@ -64,13 +64,25 @@ delete_gene <- function(sys, d)
     return(del_sys)
 }
 
-new_genes <- function (sys, new_gs)
+# new_genes function that also mutates coefficients
+#new_genes <- function (sys, new_gs, sigma_mut)
+#{
+#  sys$A <- rbind(cbind(sys$A, 
+#                       matrix(rnorm(nrow(sys$A)*new_gs, 0, sigma_mut), nrow= nrow(sys$A), ncol=new_gs)), 
+#                 matrix(rnorm(ncol(sys$A)*new_gs,0,sigma_mut), nrow = new_gs, ncol = ncol(sys$A) + new_gs))
+#  sys$B <- rbind(sys$B, matrix(0, ncol=ncol(sys$B), nrow=new_gs))
+#  sys$C <- cbind(sys$C, matrix(0, nrow=nrow(sys$C), ncol=new_gs))
+#  return(sys)
+#}
+
+# new_genes version that does NOT mutate coefficents
+new_genes <- function (sys, new_gs, sigma_mut)
 {
   sys$A <- rbind(cbind(sys$A, 
-                       matrix(rep(0, nrow(sys$A)), nrow= nrow(sys$A), ncol=new_gs)), 
+                       matrix(0, nrow= nrow(sys$A), ncol=new_gs)),
                  matrix(0, nrow = new_gs, ncol = ncol(sys$A) + new_gs))
-  sys$B <- rbind(sys$B, matrix(0, ncol=1, nrow=new_gs))
-  sys$C <- cbind(sys$C, matrix(0, nrow=1, ncol=new_gs))
+  sys$B <- rbind(sys$B, matrix(0, ncol=ncol(sys$B), nrow=new_gs))
+  sys$C <- cbind(sys$C, matrix(0, nrow=nrow(sys$C), ncol=new_gs))
   return(sys)
 }
 
@@ -188,7 +200,7 @@ evolve <- function(sys0,
 {
   next_gen <- vector(mode="list", length=population_size)
   fitness_fn <- function (sys) {
-      exp(-(D(sys, sys0)/4))
+      exp(-(D(sys, sys0)))
   }
 
   for (generations in 1:max_generation)
@@ -201,7 +213,7 @@ evolve <- function(sys0,
       add_genes <- rbinom(nrow(pop[[i]]$A), size=1, prob=p_new)
       if(sum(add_genes)>=1)
       {
-        pop[[i]] <- new_genes(pop[[i]], sum(add_genes))
+        pop[[i]] <- new_genes(pop[[i]], sum(add_genes), sigma_mut)
       }
       # gene deletions
       #if ((rbinom(1, size=1, prob=p_del) == 1) && (nrow(pop[[i]]$A) > 1))

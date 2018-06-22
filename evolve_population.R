@@ -22,11 +22,11 @@ if (!file.exists(paramfile)) {
     stop(paste("Parameter file", paramfile, "does not exist."))
 }
 
-label <- as.character(sprintf("%06d", floor(1e6*runif(1))))
-outdir <- file.path(basedir, paste0("evolsim_", label))
+label <- as.character(sprintf("mut%.2g.sig%.2g.del%.2g.add%.2g_id%06d", -log10(p_mut), -log10(sigma_mut), -log10(p_del), -log10(p_new), floor(1e6*runif(1))) )
+outdir <- file.path(basedir, paste0("evolsim.", label))
 while (file.exists(outdir)) {
     label <- as.character(sprintf("%06d", floor(1e6*runif(1))))
-    outdir <- paste0("evolsim_", label)
+    outdir <- paste0("evolsim.", label)
 }
 dir.create(outdir)
 outfile <- file.path(outdir, "evolsim_params.R")
@@ -49,6 +49,8 @@ evol_params <- list(sys0=sys0,
                     p_new=p_new)
 dput(evol_params, file=outfile)
 
+message(sprintf("\nEvolving the %s for %d generations\nPopulation size: %d\nMutation rate: %g\nMutation sigma: %g\nDeletion rate: %g\nAddition rate: %g\n",
+                basedir, max_generation, population_size, p_mut, sigma_mut, p_del, p_new))
 gen_step <- 1
 pop=rep(list(sys0), population_size)
 for (generations in 1:max_generation)
@@ -63,6 +65,10 @@ for (generations in 1:max_generation)
                   p_new=p_new,
                   pop=pop)
     save(pop, file = outfile)
+    if(generations %% 100 == 0)
+    {
+      message(sprintf("%d generations ago . . .", max_generation-generations))
+    }
 }
-
+message("\nFossils and plots in:")
 cat(outdir)
