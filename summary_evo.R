@@ -64,9 +64,9 @@ save(evolution_summary, file = outfile)
 message("\nMaking plots . . .\n")
 
 pdf("network_size_and_fitness_plots.pdf")
-par(mfrow=c(3,1), bg="antiquewhite")
+par(mfrow=c(3,1), bg="antiquewhite", oma=c(0,0,2,0))
 
-plot(evolution_summary$mean_network_size, type="n", xlab="generations", ylab="network size", main="Network Size Evolution")
+plot(evolution_summary$mean_network_size, type="n", xlab="generations", ylab="network size")
 segments(seq(1, max_gen), evolution_summary$min_network_size, seq(1, max_gen), evolution_summary$max_network_size, col=adjustcolor("blue", 0.1))
 segments(seq(1, max_gen), evolution_summary$mean_network_size - abs(evolution_summary$sd_network_size), seq(1, max_gen), evolution_summary$mean_network_size + abs(evolution_summary$sd_network_size), col=adjustcolor("red", 0.1))
 lines(evolution_summary$mean_network_size)
@@ -91,7 +91,7 @@ lines(rollmean(evolution_summary$max_fitness, round(max_gen/10) ), col="blue", l
 lines(rollmean(evolution_summary$min_fitness, round(max_gen/10) ), col="grey", lwd=2)
 legend(1, 0.75, legend = c("max fitness", "min fitness", "mean fitness", "stdev fitness"), col=c("blue", "grey", "black", "red"), lty=1, bg="transparent")
 
-mtext(plot_title, outer = TRUE, cex = 1.5)
+title(plot_title, outer = TRUE)
 
 dev.off()
 
