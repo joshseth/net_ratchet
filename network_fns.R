@@ -280,8 +280,8 @@ num_essential_genes <- function(sys)
     }
     relative_fitness <- ff/sys$fitness
     essential_genes <- length(which(relative_fitness < 0.5))
-    important_genes <- length(which(relative_fitness < 0.9))
-    deleterious_genes <- length(which(relative_fitness > 1))
-    neutralish_genes <- (length(sys$B) - important_genes - deleterious_genes)
-    return(data.frame(essential=essential_genes, important=important_genes, deleterious=deleterious_genes, neutral=neutralish_genes))
+    important_genes <- length(which(relative_fitness < 0.95))
+    deleterious_genes <- length(which(relative_fitness > 1.05))
+    neutralish_genes <- (length(sys$B) - deleterious_genes - important_genes)
+    return(data.frame(essential=essential_genes, important=important_genes, deleterious=deleterious_genes, neutral=neutralish_genes, contributing=contributing_genes))
 }

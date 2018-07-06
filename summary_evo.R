@@ -16,7 +16,9 @@ setwd(basedir)
 
       simfile <- getwd()
       temp_code <- as.numeric(unlist(strsplit(gsub("\\D", "", simfile), "")))
-      code <- temp_code[1:4]
+      ltc <- length(temp_code)
+      code <- temp_code[-c(ltc-(0:5))]
+      #code <- temp_code[1:4]
       sys_type <- basename(dirname(simfile))
       plot_title <- paste(sys_type, "mut", 10^-code[1], "sig_mut", 10^-code[2], "del", 10^-code[3], "add", 10^-code[4])
 
@@ -28,7 +30,7 @@ message("\nAnalyzing fossil record . . .")
 
 source("../params.R")
 
-evolution_summary <- data.frame(mean_fitness = rep(0, max_gen), sd_fitness = rep(0, max_gen), high_fitness_percent = rep(0, max_gen), mean_network_size = rep(0, max_gen), sd_network_size = rep(0, max_gen), min_network_size = rep(0, max_gen), max_network_size = rep(0, max_gen, max_fitness = rep(0, max_gen), min_fitness = rep(0, max_gen)), mean_essential_genes = rep(0, max_gen), mean_important_genes = rep(0, max_gen), mean_deleterious_genes = rep(0,max_gen), mean_neutral_genes = rep(0,max_gen) )
+evolution_summary <- data.frame(mean_fitness = rep(0, max_gen), sd_fitness = rep(0, max_gen), high_fitness_percent = rep(0, max_gen), mean_network_size = rep(0, max_gen), sd_network_size = rep(0, max_gen), min_network_size = rep(0, max_gen), max_network_size = rep(0, max_gen, max_fitness = rep(0, max_gen), min_fitness = rep(0, max_gen)), mean_essential_genes = rep(0, max_gen), mean_important_genes = rep(0, max_gen), mean_deleterious_genes = rep(0,max_gen), mean_neutral_genes = rep(0,max_gen))
 for (i in 1:max_gen) 
 {
        pop <- get(load(fossil_record[i]))
@@ -44,7 +46,7 @@ for (i in 1:max_gen)
        evolution_summary$min_network_size[i] <- min(network_size_list)
        evolution_summary$max_network_size[i] <- max(network_size_list)
 
-       gene_importance <- data.frame(essential= rep(0,2), important=rep(0,2), deleterious=rep(0,2), neutral=rep(0,2) )
+       gene_importance <- data.frame(essential= rep(0,2), important=rep(0,2), deleterious=rep(0,2), neutral=rep(0,2))
        sorted_pop <- pop[order(sapply(pop, '[[', 'fitness'), decreasing=TRUE)]
        for (jj in 1:2)
        {
