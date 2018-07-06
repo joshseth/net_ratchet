@@ -10,6 +10,8 @@ if (length(args) != 1) {
 
 basedir <- args[1]
 
+source("network_fns.R")
+
 setwd(basedir)
 
 suppressMessages(library(zoo))
@@ -18,7 +20,9 @@ max_gen <- length(fossil_record)
 
 message("\nAnalyzing fossil record . . .")
 
-evolution_summary <- data.frame(mean_fitness = rep(0, max_gen), sd_fitness = rep(0, max_gen), high_fitness_percent = rep(0, max_gen), mean_network_size = rep(0, max_gen), sd_network_size = rep(0, max_gen), min_network_size = rep(0, max_gen), max_network_size = rep(0, max_gen, max_fitness = rep(0, max_gen), min_fitness = rep(0, max_gen)) )
+source("../params.R")
+
+evolution_summary <- data.frame(mean_fitness = rep(0, max_gen), sd_fitness = rep(0, max_gen), high_fitness_percent = rep(0, max_gen), mean_network_size = rep(0, max_gen), sd_network_size = rep(0, max_gen), min_network_size = rep(0, max_gen), max_network_size = rep(0, max_gen, max_fitness = rep(0, max_gen), min_fitness = rep(0, max_gen)), mean_essential_genes = rep(0, max_gen), mean_important_genes = rep(0, max_gen), mean_deleterious_genes = rep(0,max_gen), mean_neutral_genes = rep(0,max_gen) )
 for (i in 1:max_gen) 
 {
        pop <- get(load(fossil_record[i]))
@@ -33,6 +37,19 @@ for (i in 1:max_gen)
        evolution_summary$sd_network_size[i] <- sd(network_size_list)
        evolution_summary$min_network_size[i] <- min(network_size_list)
        evolution_summary$max_network_size[i] <- max(network_size_list)
+
+       gene_importance <- data.frame(essential= rep(0,2), important=rep(0,2), deleterious=rep(0,2), neutral=rep(0,2) )
+       sorted_pop <- pop[order(sapply(pop, '[[', 'fitness'), decreasing=TRUE)]
+       for (jj in 1:2)
+       {
+           gene_importance[jj,] <- num_essential_genes(sorted_pop[[jj]])
+       }
+
+       evolution_summary$mean_essential_genes[i] <- mean(gene_importance$essential)
+       evolution_summary$mean_important_genes[i] <- mean(gene_importance$important)
+       evolution_summary$mean_deleterious_genes[i] <- mean(gene_importance$deleterious)
+       evolution_summary$mean_neutral_genes[i] <- mean(gene_importance$neutral)
+       
 }
 
 outfile <- file.path("evolution_summary_table.Rdata")
@@ -41,21 +58,31 @@ save(evolution_summary, file = outfile)
 message("\nMaking plots . . .\n")
 
 pdf("network_size_and_fitness_plots.pdf")
-par(mfrow=c(2,1), bg="antiquewhite")
-plot(evolution_summary$mean_network_size, type="n")
+par(mfrow=c(3,1), bg="antiquewhite")
+
+plot(evolution_summary$mean_network_size, type="n", xlab="generations", ylab="network size")
 segments(seq(1, max_gen), evolution_summary$min_network_size, seq(1, max_gen), evolution_summary$max_network_size, col=adjustcolor("blue", 0.1))
 segments(seq(1, max_gen), evolution_summary$mean_network_size - abs(evolution_summary$sd_network_size), seq(1, max_gen), evolution_summary$mean_network_size + abs(evolution_summary$sd_network_size), col=adjustcolor("red", 0.1))
 lines(evolution_summary$mean_network_size)
 lines(rollmean(evolution_summary$mean_network_size, round(max_gen/10)), col="white", lwd=2)
+legend(1, legend = c("mean network size", "stdev network size", "min-max size"), col=c("black", "red", "blue"), lty=1, bg="transparent")
 
-plot(evolution_summary$mean_fitness, type="n", ylim=c(0,1))
+plot(evolution_summary$mean_network_size, type="n", ylim=c(0, 1.5*max(evolution_summary$mean_important_genes, evolution_summary$mean_deleterious_genes)), xlab="generations", ylab="number of genes")
+lines(evolution_summary$mean_neutral_genes, col ="grey")
+lines(evolution_summary$mean_important_genes, col = "lightblue")
+lines(evolution_summary$mean_essential_genes, col = "darkblue")
+lines(evolution_summary$mean_deleterious_genes, col ="red")
+legend(1, 1.5*max(evolution_summary$mean_important_genes, evolution_summary$mean_deleterious_genes), legend = c("essential genes", "important genes", "neutral genes", "deleterious genes"), col = c("darkblue", "lightblue", "grey", "red"), lty=1, bg="transparent")
+
+plot(evolution_summary$mean_fitness, type="n", ylim=c(0,1), xlab="generations", ylab="fitness")
 axis(4)
 #segments(seq(1, max_gen), evolution_summary$min_fitness, seq(1, max_gen), evolution_summary$max_fitness, col=adjustcolor("grey", 0.1))
 segments(seq(1, max_gen), evolution_summary$mean_fitness - abs(evolution_summary$sd_fitness), seq(1, max_gen), evolution_summary$mean_fitness + abs(evolution_summary$sd_fitness), col=adjustcolor("red", 0.1))
 lines(evolution_summary$mean_fitness)
 lines(rollmean(evolution_summary$mean_fitness, round(max_gen/10)), col="white", lwd=2)
 lines(rollmean(evolution_summary$max_fitness, round(max_gen/10) ), col="blue", lwd=2)
-lines(rollmean(evolution_summary$min_fitness, round(max_gen/10) ), col="red", lwd=2)
+lines(rollmean(evolution_summary$min_fitness, round(max_gen/10) ), col="green", lwd=2)
+legend(1, 0.5, legend = c("max fitness", "min fitness", "mean fitness", "stdev fitness"), col=c("blue", "green", "black", "red"), lty=1, bg="transparent")
 dev.off()
 
 cat("\nDone\n")

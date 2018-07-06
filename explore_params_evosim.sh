@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 
 # Simulate the evolution of chosen system under a range of parameter schemes. 
 
@@ -21,9 +21,9 @@ for pmut in ${pmut_range}
             if (($add <= pmut == 1)) && (($add <= $del == 1))
             then
 
-              EVOLDIR=$(./evolve_population.R oscillator 100 10000 $pmut $sigmut $del $add) 
+              (EVOLDIR=$(./evolve_population.R oscillator 100 10000 $pmut $sigmut $del $add) 
               echo $EVOLDIR
 
-              ./summary_evo.R $EVOLDIR
+              ./summary_evo.R $EVOLDIR) &
             fi
         fi
