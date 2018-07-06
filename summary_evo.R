@@ -66,7 +66,7 @@ message("\nMaking plots . . .\n")
 pdf("network_size_and_fitness_plots.pdf")
 par(mfrow=c(3,1), bg="antiquewhite", oma=c(0,0,2,0))
 
-plot(evolution_summary$mean_network_size, type="n", xlab="generations", ylab="network size")
+plot(evolution_summary$mean_network_size, type="n", xlab="generations", ylab="network size", main="Network Size")
 segments(seq(1, max_gen), evolution_summary$min_network_size, seq(1, max_gen), evolution_summary$max_network_size, col=adjustcolor("blue", 0.1))
 segments(seq(1, max_gen), evolution_summary$mean_network_size - abs(evolution_summary$sd_network_size), seq(1, max_gen), evolution_summary$mean_network_size + abs(evolution_summary$sd_network_size), col=adjustcolor("red", 0.1))
 lines(evolution_summary$mean_network_size)
