@@ -211,7 +211,7 @@ evolve <- function(sys0,
       pop[[i]] <- mutate_system(pop[[i]], p_mut, sigma_mut)
       # add a new (zero'd out) gene
       add_genes <- rbinom(nrow(pop[[i]]$A), size=1, prob=p_new)
-      if(sum(add_genes)>=1)
+      if( sum(add_genes)>=1 && length(pop[[i]]$B)<=50 )
       {
         pop[[i]] <- new_genes(pop[[i]], sum(add_genes), sigma_mut)
       }
