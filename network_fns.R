@@ -51,8 +51,6 @@ rand_realization <- function (sys, std, m) {
     return(ran_sys)
 }
 
-
-
 delete_gene <- function(sys, d)
 {
     # d is gene to be deleted
@@ -176,6 +174,44 @@ D <- function (sys1, sys2, gamma=1/(4*pi), upper=10) {
 
 ## Evolution
 
+evolve_sexual <- function(sys0, 
+                          population_size,
+                          max_generation,
+                          p_mut,
+                          sigma_mut,
+                          pop=list(list(sys=list(sys0, sys0), fitness=1.0))[rep(1,population_size)]
+                          ) 
+{
+  next_gen <- vector(mode="list", length=population_size)
+  fitness_fn <- function (ind) {
+      sys <- list(A=(ind$sys[[1]]$A + ind$sys[[2]]$A)/2,
+                  B=(ind$sys[[1]]$B + ind$sys[[2]]$B)/2,
+                  C=(ind$sys[[1]]$C + ind$sys[[2]]$C)/2)
+      exp(-(D(sys, sys0)))
+  }
+
+  for (k in seq_along(pop)) {
+      pop[[k]]$fitness <- fitness_fn(pop[[k]])
+  }
+  for (generations in 1:max_generation)
+  {
+    fitnesses <- sapply(pop, "[[", "fitness")
+    next_gen <- lapply(1:population_size, function (n) {
+                           parents <- sample.int(population_size, size=2, replace=FALSE, prob=fitnesses)
+                           child <- mate(pop[[parents[1]]], pop[[parents[2]]])
+                           for (ploidy in 1:2) {
+                               child$sys[[ploidy]] <- mutate_system(child$sys[[ploidy]], 
+                                                                    p_mut, sigma_mut)
+                           }
+                           child$fitness <- fitness_fn(child)
+                           return(child)
+                  } )
+    pop <- next_gen
+  }
+  return(pop)
+}
+
+
 evolve <- function(sys0, 
                    population_size,
                    max_generation,
@@ -291,4 +327,7 @@ recombine <- function (sysA, sysB) {
     return(sysA)
 }
 
-
+mate <- function (indA, indB) {
+    return(list(sys=list(do.call(recombine, indA$sys),
+                         do.call(recombine, indB$sys))))
+}
