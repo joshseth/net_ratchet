@@ -1,4 +1,5 @@
 library(Matrix)
+library(parallel)
 suppressMessages(library(expm))
 
 rand_realization <- function (sys, std, m) {
@@ -179,7 +180,8 @@ evolve_sexual <- function(sys0,
                           max_generation,
                           p_mut,
                           sigma_mut,
-                          pop=list(list(sys=list(sys0, sys0), fitness=1.0))[rep(1,population_size)]
+                          pop=list(list(sys=list(sys0, sys0), fitness=1.0))[rep(1,population_size)],
+                          ncores=1
                           ) 
 {
   next_gen <- vector(mode="list", length=population_size)
@@ -196,7 +198,7 @@ evolve_sexual <- function(sys0,
   for (generations in 1:max_generation)
   {
     fitnesses <- sapply(pop, "[[", "fitness")
-    next_gen <- lapply(1:population_size, function (n) {
+    next_gen <- mclapply(1:population_size, function (n) {
                            parents <- sample.int(population_size, size=2, replace=FALSE, prob=fitnesses)
                            child <- mate(pop[[parents[1]]], pop[[parents[2]]])
                            for (ploidy in 1:2) {
@@ -205,7 +207,7 @@ evolve_sexual <- function(sys0,
                            }
                            child$fitness <- fitness_fn(child)
                            return(child)
-                  } )
+                  }, mc.cores=ncores)
     pop <- next_gen
   }
   return(pop)
