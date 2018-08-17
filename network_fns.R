@@ -64,18 +64,6 @@ delete_gene <- function(sys, d)
     return(del_sys)
 }
 
-# new_genes function that also mutates coefficients
-#new_genes <- function (sys, new_gs, sigma_mut)
-#{
-#  sys$A <- rbind(cbind(sys$A, 
-#                       matrix(rnorm(nrow(sys$A)*new_gs, 0, sigma_mut), nrow= nrow(sys$A), ncol=new_gs)), 
-#                 matrix(rnorm(ncol(sys$A)*new_gs,0,sigma_mut), nrow = new_gs, ncol = ncol(sys$A) + new_gs))
-#  sys$B <- rbind(sys$B, matrix(0, ncol=ncol(sys$B), nrow=new_gs))
-#  sys$C <- cbind(sys$C, matrix(0, nrow=nrow(sys$C), ncol=new_gs))
-#  return(sys)
-#}
-
-# new_genes version that does NOT mutate coefficents
 new_genes <- function (sys, new_gs, sigma_mut)
 {
   sys$A <- rbind(cbind(sys$A, 
@@ -215,13 +203,7 @@ evolve <- function(sys0,
       {
         pop[[i]] <- new_genes(pop[[i]], sum(add_genes), sigma_mut)
       }
-      # gene deletions
-      #if ((rbinom(1, size=1, prob=p_del) == 1) && (nrow(pop[[i]]$A) > 1))
-      #{
-      #  d <- sample(1:nrow(pop[[i]]$A), 1)
-      #  pop[[i]] <- delete_gene(pop[[i]], d)
-      #}
-       del_sys <- (rbinom(nrow(pop[[i]]$A), size=1, prob=p_del))
+      del_sys <- (rbinom(nrow(pop[[i]]$A), size=1, prob=p_del))
       if(sum(del_sys) >= 1 && any(del_sys == 0))
       {
         for (del_g in 1:sum(del_sys))
@@ -282,6 +264,31 @@ num_essential_genes <- function(sys)
     essential_genes <- length(which(relative_fitness < 0.5))
     important_genes <- length(which(relative_fitness < 0.95))
     deleterious_genes <- length(which(relative_fitness > 1.05))
-    neutralish_genes <- (length(sys$B) - deleterious_genes - important_genes)
-    return(data.frame(essential=essential_genes, important=important_genes, deleterious=deleterious_genes, neutral=neutralish_genes, contributing=contributing_genes))
+    neutralish_genes <- (length(sys$B) - important_genes - deleterious_genes)
+    return(data.frame(essential=essential_genes, 
+                      important=important_genes, 
+                      deleterious=deleterious_genes, 
+                      neutral=neutralish_genes))
 }
+
+
+################
+# Reproduction #
+################
+
+recombine_matrix <- function (U, V) {
+    stopifnot(all(dim(U) == dim(V)))
+    swaps <- (rbinom(prod(dim(U)), size=1, prob=0.5) > 0)
+    U[swaps] <- V[swaps]
+    return(U)
+}
+
+recombine <- function (sysA, sysB) {
+    sysA$A <- recombine_matrix(sysA$A, sysA$A)
+    sysA$B <- recombine_matrix(sysA$B, sysA$B)
+    sysA$C <- recombine_matrix(sysA$C, sysA$C)
+    sysA$fitness <- NULL
+    return(sysA)
+}
+
+

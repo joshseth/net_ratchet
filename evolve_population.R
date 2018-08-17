@@ -22,15 +22,20 @@ if (!file.exists(paramfile)) {
     stop(paste("Parameter file", paramfile, "does not exist."))
 }
 
-label <- as.character(sprintf("mut%.2g.sig%.2g.del%.2g.add%.2g_id%06d", -log10(p_mut), -log10(sigma_mut), -log10(p_del), -log10(p_new), floor(1e6*runif(1))) )
+tag <- sprintf("%06d", floor(1e6*runif(1)))
+label <- sprintf("mut%.2g.sig%.2g.del%.2g.add%.2g_id%s", 
+                 -log10(p_mut), -log10(sigma_mut), 
+                 -log10(p_del), -log10(p_new), tag)
 outdir <- file.path(basedir, paste0("evolsim.", label))
 while (file.exists(outdir)) {
-    label <- as.character(sprintf("%06d", floor(1e6*runif(1))))
-    outdir <- paste0("evolsim.", label)
+    tag <- sprintf("%06d", floor(1e6*runif(1)))
+    label <- sprintf("mut%.2g.sig%.2g.del%.2g.add%.2g_id%s", 
+                     -log10(p_mut), -log10(sigma_mut), 
+                     -log10(p_del), -log10(p_new), tag)
+    outdir <- file.path(basedir, paste0("evolsim.", label))
 }
 dir.create(outdir)
-outfile <- file.path(outdir, "evolsim_params.R")
-
+outfile <- file.path(outdir, "params.R")
 
 source("network_fns.R")
 source("plotting_fns.R")
@@ -40,14 +45,15 @@ if (!exists("sys0")) {
     stop(paste("Parameter file", paramfile, "does not define sys0."))
 }
 
-evol_params <- list(sys0=sys0, 
-                    population_size=population_size, 
-                    max_generation=max_generation, 
-                    p_mut=p_mut, 
-                    sigma_mut=sigma_mut, 
-                    p_del=p_del, 
-                    p_new=p_new)
-dput(evol_params, file=outfile)
+evol_params <- c("sys0",
+                 "population_size",
+                 "max_generation",
+                 "p_mut",
+                 "sigma_mut",
+                 "p_del",
+                 "p_new")
+
+dump(evol_params, file=outfile)
 
 message(sprintf("\nEvolving the %s for %d generations\nPopulation size: %d\nMutation rate: %g\nMutation sigma: %g\nDeletion rate: %g\nAddition rate: %g\n",
                 basedir, max_generation, population_size, p_mut, sigma_mut, p_del, p_new))
@@ -67,8 +73,7 @@ for (generations in 1:max_generation)
     save(pop, file = outfile)
     if(generations %% 100 == 0)
     {
-      message(sprintf("%d generations ago . . .", max_generation-generations))
+      message(sprintf("%d generations . . .\n", generations))
     }
 }
-message("\nFossils and plots in:")
-cat(outdir)
+message(sprintf("\nFossils and plots in: %s", outdir))
