@@ -2,6 +2,7 @@
 
 usage <- "
     ./plot_fitness_traces (simulation directory 1) (simulation directory 2) [number of systems per step]
+The second simulation must be at least as long as the first (but may be longer).
 "
 
 args <- if (interactive()) { scan(what='') } else { commandArgs(TRUE) }
@@ -32,7 +33,7 @@ for (xn in c("A", "B", "C")) {
     stopifnot(all(dim(paramlist[[1]]$sys0[[xn]]) == dim(paramlist[[2]]$sys0[[xn]])))
     stopifnot(all(paramlist[[1]]$sys0[[xn]] == paramlist[[2]]$sys0[[xn]]))
 }
-stopifnot((paramlist[[1]]$max_generation >= paramlist[[2]]$max_generation))
+stopifnot((paramlist[[1]]$max_generation <= paramlist[[2]]$max_generation))
 
 sys0 <- paramlist[[1]]$sys0
 max_generation <- paramlist[[1]]$max_generation
@@ -94,7 +95,9 @@ write.table(F2_fitness, file=file.path(outdir, "F2_fitnesses.tsv"))
 pdf(file=file.path(outdir, "hybrid_fitness.pdf"), width=6, height=4, pointsize=10)
     matplot(cbind(F2_fitness, F1_fitness, P1_fitness, P2_fitness),
             lty=1, col=rep(2:5, c(1,2,2,2)*num_crosses),
-            xlab='generation', ylab='fitness')
+            xlab='generation', ylab='fitness',
+            pch=20, cex=0.5, 
+            col=rep(5:2, c(ncol(F2_fitness, F1_fitness, P1_fitness, P2_fitness))))
     lines(1:max_generation, rowMeans(F2_fitness), col=5, lwd=2)
     lines(1:max_generation, rowMeans(F1_fitness), col=4, lwd=2)
     lines(1:max_generation, rowMeans(P1_fitness), col=3, lwd=2)
