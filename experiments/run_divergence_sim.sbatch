@@ -9,6 +9,7 @@ module load R
 set -u
 
 echo "Git hash: $(git rev-parse HEAD)"
+pwd
 
 echo "Running:"
 echo "   ./evolve_sexual.R $BASEDIR $POPSIZE $MAXGEN $PMUT $SMUT $NCORES"

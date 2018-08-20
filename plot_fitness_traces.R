@@ -53,8 +53,10 @@ fitness_fn <- function (ind) {
   exp(-(D(sys, sys0)))
 }
 
-loadgen <- function (basedir, n) {
-    fossil <- file.path(basedir, sprintf("fossil_%0*d.Rdata", nchar(max_generation), n))
+loadgen <- function (k, n) {
+    basedir <- if (k==1) { basedir1 } else { basedir2 }
+    fossil <- file.path(basedir, sprintf("fossil_%0*d.Rdata", 
+                                         nchar(paramlist[[k]]$max_generation), n))
     x <- load(fossil)
     return(get(x))
 }
@@ -65,11 +67,11 @@ P1_fitness <- matrix(NA, nrow=max_generation, ncol=2*num_crosses)
 P2_fitness <- matrix(NA, nrow=max_generation, ncol=2*num_crosses)
 
 for (gen in 1:max_generation) {
-    pop1 <- loadgen(basedir1, gen)
+    pop1 <- loadgen(1, gen)
     fit1 <- sapply(pop1, "[[", "fitness")
     parents1 <- sample.int(length(pop1), 2 * num_crosses, prob=fit1)
     P1_fitness[gen,] <- fit1[parents1]
-    pop2 <- loadgen(basedir2, gen)
+    pop2 <- loadgen(2, gen)
     fit2 <- sapply(pop2, "[[", "fitness")
     parents2 <- sample.int(length(pop2), 2 * num_crosses, prob=fit2)
     P2_fitness[gen,] <- fit2[parents2]
@@ -96,8 +98,7 @@ pdf(file=file.path(outdir, "hybrid_fitness.pdf"), width=6, height=4, pointsize=1
     matplot(cbind(F2_fitness, F1_fitness, P1_fitness, P2_fitness),
             lty=1, col=rep(2:5, c(1,2,2,2)*num_crosses),
             xlab='generation', ylab='fitness',
-            pch=20, cex=0.5, 
-            col=rep(5:2, c(ncol(F2_fitness, F1_fitness, P1_fitness, P2_fitness))))
+            pch=20, cex=0.5)
     lines(1:max_generation, rowMeans(F2_fitness), col=5, lwd=2)
     lines(1:max_generation, rowMeans(F1_fitness), col=4, lwd=2)
     lines(1:max_generation, rowMeans(P1_fitness), col=3, lwd=2)
