@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 usage <- "
-    ./plot_fitness_traces (simulation directory 1) (simulation directory 2) [number of systems per step]
+    ./plot_fitness_traces.R (simulation directory 1) (simulation directory 2) [number of systems per step]
 The second simulation must be at least as long as the first (but may be longer).
 "
 
