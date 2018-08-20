@@ -12,7 +12,7 @@ if (! length(args) %in% c(2,3)) {
 basedir1 <- args[1]
 basedir2 <- args[2]
 if (length(args) > 2) {
-    num_crosses <- args[3]
+    num_crosses <- as.numeric(args[3])
 } else {
     num_crosses <- 5
 }

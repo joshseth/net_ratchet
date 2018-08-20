@@ -18,6 +18,9 @@ if (length(args) > 5) {
     ncores <- as.numeric(args[6])
 }
 
+# how many times to write out the state
+num_fossils <- 1000
+
 paramfile <- file.path(basedir, "params.R")
 if (!file.exists(paramfile)) {
     stop(paste("Parameter file", paramfile, "does not exist."))
@@ -54,9 +57,10 @@ dump(evol_params, file=outfile)
 
 message(sprintf("\nEvolving the %s for %d generations\nPopulation size: %d diploids\nMutation rate: %g\nMutation sigma: %g\n",
                 basedir, max_generation, population_size, p_mut, sigma_mut))
-gen_step <- 1
+
+gen_step <- ceiling(max_generation / num_fossils)
 pop=list(list(sys=list(sys0,sys0)))[rep(1,population_size)]
-for (generations in 1:max_generation)
+for (generations in 1:num_fossils)
 {
     outfile <- file.path(outdir, sprintf("fossil_%0*d.Rdata", nchar(max_generation), generations))
     pop <- evolve_sexual(sys0, 
