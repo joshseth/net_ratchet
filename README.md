@@ -10,4 +10,9 @@ Scripts:
     * eigenvalues
 
 - `./evolve_population.R (name of system directory) (population_size) (max_generation) (p_mut) (sigma_mut) (p_del) (p_new)`
+- `./evolve_sexual.R (name of system directory) (population_size) (max_generation) (p_mut) (sigma_mut)`
+
+Applies to output of evolution experiments:
+
+- `./plot_fitness_traces.R (simulation directory 1) (simulation directory 2) [number of systems per step]`
 

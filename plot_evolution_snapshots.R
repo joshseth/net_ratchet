@@ -11,11 +11,12 @@ if (! length(args) %in% c(2,3)) {
 
 basedir <- args[1]
 nsnapshots <- as.numeric(args[2])
-num_crosses <- if (length(args) > 2) { as.numeric(args[3]) } else { 20 }
+num_crosses <- if (length(args) > 2) { as.numeric(args[3]) } else { 100 }
 
 source("network_fns.R")
 source("plotting_fns.R")
 library(matrixStats)
+library(colorspace)
 
 fitness_fn <- function (ind) {
   sys <- list(A=(ind$sys[[1]]$A + ind$sys[[2]]$A)/2,
@@ -82,27 +83,32 @@ for (gen in summary_gens) {
 save(summaries, summary_gens, file=file.path(outdir, "snapshot_summaries.RData"))
 
 pdf(file=file.path(outdir, "snapshots.pdf"), width=6.5, height=10, pointsize=10)
-layout(1:4)
+layout(1:3)
 par(mar=c(1, 3, 3, 1))
-    for (x in c("A", "B", "C", "fitness")) {
-        plot(0, type='n', xlim=range(summary_gens), ylim=range(summaries[[x]]),
-             main=sprintf("%s", x),
-             xlab=if (x=='fitness') { 'generation number' } else { '' }, 
-             xaxt=if (x=='fitness') { 's' } else { 'n' }, 
+    for (x in list("A", c("B", "C"), "fitness")) {
+        plot(0, type='n', xlim=range(summary_gens), ylim=range(unlist(summaries[x])),
+             main=sprintf("%s :: %s", if (any(x=='A')) { basename(basedir) } else { "" }, 
+                          paste(x, collapse=' and ')),
+             xlab=if (any(x=='fitness')) { 'generation number' } else { '' }, 
+             xaxt=if (any(x=='fitness')) { 's' } else { 'n' }, 
              ylab='value')
-        thecolors <- rainbow(dim(summaries[[x]])[2])
-        for (k in 1:dim(summaries[[x]])[2]) {
-            polygon(x=c(summary_gens, rev(summary_gens)),
-                    y=c(summaries[[x]][,k,'q05'], rev(summaries[[x]][,k,'q95'])),
-                    col=adjustcolor(thecolors[k], 0.25), border=NA)
-            polygon(x=c(summary_gens, rev(summary_gens)),
-                    y=c(summaries[[x]][,k,'q25'], rev(summaries[[x]][,k,'q75'])),
-                    col=adjustcolor(thecolors[k], 0.5), border=adjustcolor(thecolors[k], 0.75))
+        thecolors <- rainbow(sum(sapply(x, function (xx) dim(summaries[[xx]])[2])))
+        for (xx in x) {
+            for (k in 1:dim(summaries[[xx]])[2]) {
+                polygon(x=c(summary_gens, rev(summary_gens)),
+                        y=c(summaries[[xx]][,k,'q05'], rev(summaries[[xx]][,k,'q95'])),
+                        col=adjustcolor(thecolors[k], 0.25), border=NA)
+                polygon(x=c(summary_gens, rev(summary_gens)),
+                        y=c(summaries[[xx]][,k,'q25'], rev(summaries[[xx]][,k,'q75'])),
+                        col=adjustcolor(thecolors[k], 0.5), border=adjustcolor(thecolors[k], 0.75))
+            }
         }
-        matlines(summary_gens, summaries[[x]][,,'q50'],
-                lty=1, col=thecolors, lwd=2)
-        if (x == "A") par(mar=c(1, 3, 1, 1))
-        if (x == "C") par(mar=c(4, 3, 1, 1))
+        for (xx in x) {
+            matlines(summary_gens, summaries[[xx]][,,'q50'],
+                    lty=1, col=adjustcolor(thecolors, 0.75), lwd=2)
+        }
+        if (any(x == "A")) par(mar=c(1, 3, 1, 1))
+        if (any(x == "C")) par(mar=c(4, 3, 1, 1))
     }
     legend("bottomleft", lty=1, lwd=2, col=thecolors, legend=dimnames(summaries[[x]])[[2]])
 dev.off()
