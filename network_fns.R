@@ -336,9 +336,9 @@ recombine_matrix <- function (U, V) {
 }
 
 recombine <- function (sysA, sysB) {
-    sysA$A <- recombine_matrix(sysA$A, sysA$A)
-    sysA$B <- recombine_matrix(sysA$B, sysA$B)
-    sysA$C <- recombine_matrix(sysA$C, sysA$C)
+    sysA$A <- recombine_matrix(sysA$A, sysB$A)
+    sysA$B <- recombine_matrix(sysA$B, sysB$B)
+    sysA$C <- recombine_matrix(sysA$C, sysB$C)
     sysA$fitness <- NULL
     return(sysA)
 }
