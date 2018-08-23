@@ -33,12 +33,12 @@ plot_kryptotypes <- function (sys, max_time, ylim, pheno_ylim=FALSE,
 }
 
 plot_many_phenotypes <- function (systems, score, max_time, optimal_sys, ylim, 
-                                  opt_ylim=FALSE, xlab='time', ylab='phenotype', ...) {
+                                  opt_ylim=FALSE, xlab='time', ylab='phenotype', 
+                                  max_dist=10, ...) {
     tt <- seq(0, max_time, length.out=400)
     pheno <- sapply(systems, function (sys) { h(tt, sys) })
     ncols <- 100
     colfunc <- colorRampPalette(c("black", "blue", "red"))
-    max_dist <- 10
     colbreaks <- c(seq(0, max_dist, length.out=ncols), Inf)
     colfn <- function (x) { colfunc(ncols)[as.numeric(cut(x, breaks=colbreaks, include.lowest=TRUE))] }
     cols <- adjustcolor(colfn(score), 0.5)

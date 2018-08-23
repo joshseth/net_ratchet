@@ -70,7 +70,7 @@ for (generations in 1:num_fossils)
                   sigma_mut=sigma_mut, 
                   pop=pop,
                   ncores=ncores)
-    save(pop, file = outfile)
+    save(pop, sys0, file = outfile)
     if(generations %% 100 == 0)
     {
       message(sprintf("%d generations . . .\n", generations))

@@ -186,9 +186,7 @@ evolve_sexual <- function(sys0,
 {
   next_gen <- vector(mode="list", length=population_size)
   fitness_fn <- function (ind) {
-      sys <- list(A=(ind$sys[[1]]$A + ind$sys[[2]]$A)/2,
-                  B=(ind$sys[[1]]$B + ind$sys[[2]]$B)/2,
-                  C=(ind$sys[[1]]$C + ind$sys[[2]]$C)/2)
+      sys <- diploid_system(ind)
       exp(-(D(sys, sys0)))
   }
 
@@ -313,6 +311,22 @@ num_essential_genes <- function(sys)
 ################
 # Reproduction #
 ################
+
+# Diploid individuals are a list of the form:
+#
+# $sys -> a list with two components, one for each system
+#
+# $fitness
+#
+# ... and optionally other things
+
+diploid_system <- function (ind) {
+    sys <- list()
+    for (x in c("A", "B", "C")) {
+        sys[[x]] <- (ind$sys[[1]][[x]] + ind$sys[[2]][[x]])/2
+    }
+    return(sys)
+}
 
 recombine_matrix <- function (U, V) {
     stopifnot(all(dim(U) == dim(V)))
