@@ -47,22 +47,25 @@ if (!exists("sys0")) {
     stop(paste("Parameter file", paramfile, "does not define sys0."))
 }
 
+gen_step <- ceiling(max_generation / num_fossils)
+
 evol_params <- c("sys0",
                  "population_size",
                  "max_generation",
                  "p_mut",
-                 "sigma_mut")
+                 "sigma_mut",
+                 "gen_step")
 
 dump(evol_params, file=outfile)
 
 message(sprintf("\nEvolving the %s for %d generations\nPopulation size: %d diploids\nMutation rate: %g\nMutation sigma: %g\n",
                 basedir, max_generation, population_size, p_mut, sigma_mut))
+message(sprintf("Dumping state every %d generations.\n", gen_step)
 
-gen_step <- ceiling(max_generation / num_fossils)
 pop=list(list(sys=list(sys0,sys0)))[rep(1,population_size)]
 for (generations in 1:num_fossils)
 {
-    outfile <- file.path(outdir, sprintf("fossil_%0*d.Rdata", nchar(max_generation), generations))
+    outfile <- file.path(outdir, sprintf("fossil_%0*d.Rdata", nchar(max_generation), gen_step * generations))
     pop <- evolve_sexual(sys0, 
                   population_size=population_size, 
                   max_generation=gen_step,
@@ -71,9 +74,9 @@ for (generations in 1:num_fossils)
                   pop=pop,
                   ncores=ncores)
     save(pop, sys0, file = outfile)
-    if(generations %% 100 == 0)
+    if(generations %% 50 == 0)
     {
-      message(sprintf("%d generations . . .\n", generations))
+      message(sprintf("%d generations . . .\n", generations * gen_step))
     }
 }
 message(sprintf("\nFossils and plots in: %s", outdir))

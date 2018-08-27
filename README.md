@@ -15,4 +15,4 @@ Scripts:
 Applies to output of evolution experiments:
 
 - `./plot_fitness_traces.R (simulation directory 1) (simulation directory 2) [number of systems per step]`
-
+- `./plot_population.R (Rdata fossil file)`
