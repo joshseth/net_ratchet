@@ -18,7 +18,7 @@ rand_realization <- function (sys, std, m) {
         A12 <- matrix(c(rnorm(m*n0, mean=0, std)), nrow=m, ncol=n0);
         A11 <- matrix(c(rnorm(m^2, mean=0, std)), nrow=m, ncol=m);
         #B2 <- matrix(c(rnorm(m*bn0, mean=0, sd=std)), nrow = m, ncol = bn0 );
-        B1 <- matrix(c(rep(0,m*bn0)), nrow = m, ncol = bn0 );
+        B1 <- matrix(c(rnorm(m*bn0, mean=0, std)), nrow = m, ncol = bn0 );
         C1 <- matrix(c(rep(0, cn0*m)), nrow = cn0, ncol = m);
     } else {
         A11 <- NULL;
@@ -76,7 +76,7 @@ delete_gene <- function(sys, d)
 #}
 
 # new_genes version that does NOT mutate coefficents
-new_genes <- function (sys, new_gs, sigma_mut)
+new_genes <- function (sys, new_gs)
 {
   sys$A <- rbind(cbind(sys$A, 
                        matrix(0, nrow= nrow(sys$A), ncol=new_gs)),
@@ -153,6 +153,8 @@ nonsingular_eigen <- function (A, tol=sqrt(.Machine$double.eps))
     return(eA)
 }
 
+library(pracma)
+
 D <- function (sys1, sys2, gamma=1/(4*pi), upper=10) {
     # compute *in the case that sys1$A and sys2$A are diagonalizable*,
     # \int_0^\upper exp(-(t*gamma)) |C0 exp(t A0) B0 - C1 exp(t A1) B1|^2 dt
@@ -165,7 +167,8 @@ D <- function (sys1, sys2, gamma=1/(4*pi), upper=10) {
         {
             exp(-t*gamma) * ( h(t, sys1) - h(t, sys2) )^2
         }
-        out <- integrate(f, lower=0, upper=upper)$value
+        #out <- integrate(f, lower=0, upper=upper)$value
+         out <- sum(quadv(f, 0, upper)$Q)
         return(out)
     }
     esum_1 <- (gamma - outer(e1$values, e1$values, "+"))
@@ -211,9 +214,9 @@ evolve <- function(sys0,
       pop[[i]] <- mutate_system(pop[[i]], p_mut, sigma_mut)
       # add a new (zero'd out) gene
       add_genes <- rbinom(nrow(pop[[i]]$A), size=1, prob=p_new)
-      if( sum(add_genes)>=1 && length(pop[[i]]$B)<=50 )
+      if( sum(add_genes)>=1 && nrow(pop[[i]]$A)<=30 )
       {
-        pop[[i]] <- new_genes(pop[[i]], sum(add_genes), sigma_mut)
+        pop[[i]] <- new_genes(pop[[i]], sum(add_genes))
       }
       # gene deletions
       #if ((rbinom(1, size=1, prob=p_del) == 1) && (nrow(pop[[i]]$A) > 1))
@@ -283,5 +286,5 @@ num_essential_genes <- function(sys)
     important_genes <- length(which(relative_fitness < 0.95))
     deleterious_genes <- length(which(relative_fitness > 1.05))
     neutralish_genes <- (length(sys$B) - deleterious_genes - important_genes)
-    return(data.frame(essential=essential_genes, important=important_genes, deleterious=deleterious_genes, neutral=neutralish_genes, contributing=contributing_genes))
+    return(data.frame(essential=essential_genes, important=important_genes, deleterious=deleterious_genes, neutral=neutralish_genes))
 }

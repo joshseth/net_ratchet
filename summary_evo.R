@@ -20,9 +20,10 @@ setwd(basedir)
       code <- temp_code[-c(ltc-(0:5))]
       #code <- temp_code[1:4]
       sys_type <- basename(dirname(simfile))
-      plot_title <- paste(sys_type, "mut", 10^-code[1], "sig_mut", 10^-code[2], "del", 10^-code[3], "add", 10^-code[4])
+      len <- length(code)
+      plot_title <- paste(sys_type, "mut", 10^-code[len-3], "sig_mut", 10^-code[len-2], "del", 10^-code[len-1], "add", 10^-code[len])
 
-suppressMessages(library(zoo))
+#suppressMessages(library(zoo))
 fossil_record <- list.files(pattern="fossil_")
 max_gen <- length(fossil_record)
 
@@ -57,7 +58,11 @@ for (i in 1:max_gen)
        evolution_summary$mean_important_genes[i] <- mean(gene_importance$important)
        evolution_summary$mean_deleterious_genes[i] <- mean(gene_importance$deleterious)
        evolution_summary$mean_neutral_genes[i] <- mean(gene_importance$neutral)
-       
+      
+      if (i%%100 == 0)
+      {
+        message(sprintf("%2.2f %% of fossils analyzed", 100 * i/max_gen))
+      }
 }
 
 outfile <- file.path("evolution_summary_table.Rdata")
@@ -66,13 +71,12 @@ save(evolution_summary, file = outfile)
 message("\nMaking plots . . .\n")
 
 pdf("network_size_and_fitness_plots.pdf")
-par(mfrow=c(3,1), bg="antiquewhite", oma=c(0,0,2,0))
+par(mfrow=c(3,1), oma=c(0,0,2,0))
 
 plot(evolution_summary$mean_network_size, type="n", xlab="generations", ylab="network size", main="Network Size")
 segments(seq(1, max_gen), evolution_summary$min_network_size, seq(1, max_gen), evolution_summary$max_network_size, col=adjustcolor("blue", 0.1))
 segments(seq(1, max_gen), evolution_summary$mean_network_size - abs(evolution_summary$sd_network_size), seq(1, max_gen), evolution_summary$mean_network_size + abs(evolution_summary$sd_network_size), col=adjustcolor("red", 0.1))
 lines(evolution_summary$mean_network_size)
-lines(rollmean(evolution_summary$mean_network_size, round(max_gen/10)), col="white", lwd=2)
 legend(1, max(evolution_summary$mean_network_size),legend = c("mean network size", "stdev network size", "min-max size"), col=c("black", "red", "blue"), lty=1, bg="transparent")
 
 plot(evolution_summary$mean_network_size, type="n", ylim=c(0, 2 + max(evolution_summary$mean_important_genes, evolution_summary$mean_deleterious_genes)), xlab="generations", ylab="number of genes", main = "Gene Essentiality")
@@ -88,9 +92,8 @@ axis(4)
 #segments(seq(1, max_gen), evolution_summary$min_fitness, seq(1, max_gen), evolution_summary$max_fitness, col=adjustcolor("grey", 0.1))
 segments(seq(1, max_gen), evolution_summary$mean_fitness - abs(evolution_summary$sd_fitness), seq(1, max_gen), evolution_summary$mean_fitness + abs(evolution_summary$sd_fitness), col=adjustcolor("red", 0.1))
 lines(evolution_summary$mean_fitness)
-lines(rollmean(evolution_summary$mean_fitness, round(max_gen/10)), col="white", lwd=2)
-lines(rollmean(evolution_summary$max_fitness, round(max_gen/10) ), col="blue", lwd=2)
-lines(rollmean(evolution_summary$min_fitness, round(max_gen/10) ), col="grey", lwd=2)
+lines(evolution_summary$max_fitness, col="blue", lwd=2)
+lines(evolution_summary$min_fitness, col="grey", lwd=2)
 legend(1, 0.75, legend = c("max fitness", "min fitness", "mean fitness", "stdev fitness"), col=c("blue", "grey", "black", "red"), lty=1, bg="transparent")
 
 title(plot_title, outer = TRUE)

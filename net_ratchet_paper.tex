@@ -1,0 +1,558 @@
+\documentclass{article}
+\usepackage{amsmath, amssymb, color, xcolor, amsthm}
+\usepackage{graphicx, wrapfig, float, caption, dsfont, bbm, xfrac, setspace}
+\usepackage{fullpage}
+\usepackage[backref=page, hidelinks, colorlinks=true, citecolor=blue!60!black!100]{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, shapes}
+\usepackage{caption, subcaption}
+\usepackage{natbib} % gives us \citet: Author (year) and \citep: (Author; year)
+\usepackage{authblk}
+\usepackage{lineno}
+\usepackage{multicol}
+\usepackage[bottom]{footmisc}
+
+% for comments in margins or not
+\newif\ifmargincomments
+\margincommentsfalse
+% \margincommentstrue
+\ifmargincomments
+    \usepackage{todonotes}
+    \usepackage[left=1cm,right=6.5cm,top=3cm,bottom=3cm,nohead,nofoot,marginparwidth=6cm]{geometry}
+    \newcommand{\plr}[1]{\todo[color=blue!25]{#1}}
+    \newcommand{\js}[1]{\todo[color=green!25]{#1}}
+    % inline comment version
+    \newcommand{\plri}[1]{{\color{blue}\it #1}}
+\else
+    \newcommand{\plr}[1]{{\color{blue}\it #1}}
+    \newcommand{\js}[1]{{\color{green}\it #1}}
+    \newcommand{\plri}[1]{\plr{#1}}
+\fi
+
+\newcommand{\jss}[1]{{\color{olive}\it #1}}
+% \newcommand{\ddt}{\frac{d}{dt}}
+\newcommand{\ddt}{\dot}
+\newcommand{\ro}{{ro}}
+\newcommand{\nro}{{\bar{r}o}}
+\newcommand{\rno}{{r\bar{o}}}
+\newcommand{\nrno}{{\bar{r}\bar{o}}}
+\newcommand{\reachable}{\mathcal{R}}
+\newcommand{\unobservable}{\bar{\mathcal{O}}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\var}{\mathop{\mbox{Var}}}
+\newcommand{\cov}{\mathop{\mbox{Cov}}}
+\newcommand{\tr}{\mathop{\mbox{tr}}} % trace
+\newcommand{\pda}{\frac{\partial}{\partial A_{ij}}}
+\newcommand{\ind}{\mathds{1}}
+\newcommand{\grad}{\nabla}
+
+\newcommand{\calH}{\mathcal{H}}
+\newcommand{\diag}{\text{diag}}
+\newcommand{\1}{\mathbbm{1}}
+
+% the triple (A,B,C) as 'system' (not using)
+\newcommand{\Sys}{\mathcal{S}}
+% neutral set of all systems
+\newcommand{\allS}{\mathcal{N}}
+
+% fitness as a fn of distance
+\newcommand{\fit}{\mathcal{F}}
+% fitness as a fn of A
+\newcommand{\fitx}{\mathcal{F}}
+% set of optimal coefficients
+\newcommand{\optx}{\mathcal{X}}
+% optimal phenotype
+\newcommand{\optph}{\Phi_0}
+% distance in phenotype space
+\newcommand{\dph}{d}
+% incompatibility
+\newcommand{\Incompat}{\mathcal{I}}
+
+\DeclareMathOperator{\spn}{span}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{definition}{Definition}
+\newtheorem{example}{Example}
+
+\begin{document}
+%\doublespacing
+\linenumbers
+
+{\centering
+{\Huge \bf Chance and necessity in gene network complexity} \\ \vspace{0.75cm}
+Joshua S. Schiffman$^{\dagger}$ \qquad Peter L. Ralph$^{\dagger \ddagger}$ \\ \vspace{0.5cm}
+$^{\dagger}${\footnotesize {Molecular and Computational Biology, University of Southern California, Los Angeles, California 90089, U.S.A. \\
+$^{\ddagger}$Departments of Mathematics and Biology \& The Institute for Ecology and Evolution, University of Oregon, Eugene, Oregon 97403, U.S.A.}} \\ \vspace{0.5cm}
+{\small \texttt{jsschiff@usc.edu} \qquad 
+\texttt{plr@uoregon.edu}} \\ \vspace{0.5cm}
+\small \today \\
+\vspace{0.25cm}
+}
+
+
+\begin{abstract}
+How does the balance of selection and drift shape gene regulatory network architecture? Do networks tend to ratchet up in complexity? 
+\end{abstract}
+
+
+\section{Introduction}
+
+% Discuss Lynch 2007 paper
+% Discuss Constructive Neutral Evolution papers + Irremedial Complexity paper
+% Discuss intelligent versus Rube Goldberg circadian rhythm paper
+
+
+It is an outstanding problem in biology to identify the myriad of interactions
+among genes and their products and further to ascertain the functional and adaptive
+significance of these interations.
+At first glance, through the incomplete application of evolutionary principles,
+one might draw the conclusion that the architecture of genetic
+interactions within a cell are precisely so to carry out adaptive functions.
+It has, however, been long known and demonstrated that this hypothesis fails under scrutiny;
+population genetic models generally do not support such a view \cite{lynch2007evolution}. 
+
+It has been suggested that the architecture of biological systems can also largely be influenced by non-adaptive
+or neutral processes. This is intuitively appealing to its proponents as many systems seem to be of ``baroque''
+design, unnecessarily complex, or in other ways unneccesarilly complicated, such as the Rube Goldberg structure
+of eukaryotic circadian rhythms \citep{sancar2008intelligent}. 
+Along a similar vein, the apparent ``gratuitous complexity'' of RNA editing \citep{covello1993evolution} and
+the eukaryotic splicesome \citep{nilsen2003spliceosome, gray2010irremediable} may be the consequence of
+non-adaptive evolutionary processes, such as a neutral complexity ratchet, sometimes refered to as
+\emph{constructive neutral evolution} \citep{stoltzfus1999possibility, stoltzfus2012constructive, lukevs2011neutral}.
+This ratchet proncess, as previously pointed out \citep{gray2010irremediable}
+is conceptually similar to \emph{contingent irreversibility} \citep{szathmary1995major} -- the
+``accidental'' process by which mitchondria may have lost the ability
+to independently replicate, after symbiotically residing within a larger cell,
+and to the duplication-degeneration-complementation process by which redudant
+duplicate genes evolve away from expendability \citep{lynch2000probability}.
+
+Although the invocation of neutral processes is appealing, and an attractive alternative,
+to what is sometimes called the pan-adaptationist view, it is important to understand the
+balance of both neutral and adaptive processes. 
+The structure of these interactions, or genetic networks, is the consequence of
+overlapping forces: selection for adaptive function, population factors and genetic drift. 
+In this paper we apply tools from system theory to decompose the affects of these forces on
+network structure. Here we aim to clarify the interplay of these processes by using
+explicit (mathematical and computational) methods, as the current models describing
+the evolution of biological complexity are largely verbal and intuitive. 
+
+Within the framework of system theory, we can explicitly interpret the function of a
+genetic network and also determine the parsimony of such a network.
+That is, given some adaptive function -- e.g. the oscillating transcription of a
+gene regulatory network involved in circadian rhythm -- we can explicitly
+evaluate a particular network's fitness for such a function and further ask how
+parsimonious such a network is. The parsimony of a system is a measure of the number
+of interacting genes within the network. If a specific function, such as an oscillator,
+can be achieved, in principle, by as few as two genes,
+then any such network involving more than two genes can be viewed as (unncessarily) complex,
+at least with respect to its imagined function.
+
+Within this framework we aimed to understand how the balance of evolutionary forces
+influence network architecture. Under which circumstances, if any, do we observe
+highly parsimonious versus highly complex networks?
+
+
+\section{Results}
+%
+%\paragraph{System drift}
+%Under stabilizing selection gene networks will tend to udner go system drift -- that is the
+%organization of the genetic interactions will change, despite constant selective and
+%environmental pressures, as well as constant population parameters.
+%
+%\paragraph{Network expansion}
+%As shown by the Kalman Decomposition, there are an infinite number of biological systems,
+%involving an arbitrarily large number of genes that can perform a function identical to any given
+%minimal system. In situations where selection does not oppose, or only weakly acts against, the number of genes in a system,
+%system drift, will slowly increase the complexity of genetic networks. 
+%
+%For instance, if we simulate the evolution of a system, initially involving the minimal number of genes, but embed it in an organism
+%with other genes available for recruitment, over time, all of these genes will join the network, with many becoming indepsendible to
+%proper network functioning.
+%
+%SEE DATA on oscillator evolution starting at min with 4 extra initially empty dimensions
+%
+%In the above simulation, we see that over time mutation recruits these potential regulators, and most artificial deletions of these
+%initially unneccessary genes significantly reduces fitness. This suggests that biological systems will tend towards higher complexity
+%as they recruit the available genes in its vicinity. 
+%
+%However, if we include gene deletion and addition mutations, such that genes can be completely removed or added, the dynamics are quite different.
+%In many parameter schemes there is strong selection against gene addition and thus recruitment, as gene addition increases the mutational target
+%of the system. It is possible to observe the evolution of increased complexity under this regimen however, if gene addition and deletion rates are
+%nearly equal, and if the mutation rates and magnitudes are sufficiently low. 
+
+\paragraph{System theory}
+
+As in \citet{schiffman2018system}, we model gene
+regulatory networks as linear dynamical systems.
+
+We use a model of gene regulatory networks
+that describes the temporal dynamics of
+a collection of $n$ coregulating molecules
+-- such as transcription factors -- as well as external or environmental inputs.
+We write $\kappa(t)$ for the vector of $n$ molecular concentrations at time $t$.
+The vector of $m$ ``inputs'' determined exogenously to the system is denoted $u(t)$,
+and the vector of $\ell$ ``outputs'' is denoted $\phi(t)$.
+The output is merely a linear function of the internal state:
+$\phi_i(t) = \sum_j C_{ij} \kappa_j(t)$
+for some matrix $C$.
+Since $\phi$ is what natural selection acts on, we refer to it as the \emph{phenotype}
+(meaning the ``visible'' aspects of the organism),
+and in contrast refer to $\kappa$ as the \emph{kryptotype},
+as it is ``hidden'' from direct selection.
+Although $\phi$ may depend on all entries of $\kappa$,
+it is usually of lower dimension than $\kappa$,
+and we tend to think of it as the subset of molecules relevant for survival.
+The dynamics are determined by
+the matrix of regulatory coefficients, $A$,
+a time-varying vector of inputs $u(t)$,
+and a matrix $B$ that encodes the effect of each entry of $u$ on the elements of the kryptotype.
+The rate at which the $i^\text{th}$ concentration changes
+is a weighted sum of the concentrations
+as well as the input:
+\begin{equation}\label{eqn:system}
+   \begin{aligned}
+    \dot{\kappa}(t) &= A \kappa(t) + B u(t) \\
+    \phi(t) &= C \kappa(t) .
+  \end{aligned} 
+\end{equation}
+Furthermore, we always assume that $\kappa(0) = 0$,
+so that the kryptotype measures deviations from initial concentrations. 
+Here $A$ can be any $n \times n$ matrix, $B$ any $n \times m$, and $C$ any $\ell \times n$ dimensional matrix,
+with usually $\ell$ and $m$ less than $n$.
+We think of the system as the triple $(A,B,C)$,
+which translates (time-varying) $m$-dimensional input $u(t)$ into the $\ell$-dimensional output $\phi(t)$.
+Under quite general assumptions,
+we can write the phenotype as
+  \begin{align}
+    \phi(t) = C e^{A t} \kappa(0) + \int_{0}^{t} C e^{A (t-s)} B u(s) ds ,
+  \end{align}
+which is a convolution of the input $u(t)$ with the system's \emph{impulse response},
+which we denote as $h(t) := Ce^{A t}B$.
+
+In terms of gene regulatory networks, $A_{ij}$ determines how the $j^\text{th}$ transcription factor regulates the $i^\text{th}$ transcription factor.
+If $A_{ij} > 0$, then $\kappa_j$ upregulates $\kappa_i$, while if $A_{ij} < 0$, then $\kappa_j$ downregulates $\kappa_i$.
+The $i^\text{th}$ row of $A$ is therefore determined by genetic features such as
+the strength of $j$-binding sites in the promoter of gene $i$,
+factors affecting chromatin accessibility near gene $i$,
+or basal transcription machinery activity.
+The form of $B$ determines how the environment influences transcription factor expression levels,
+and $C$ might determine the rate of production of downstream enzymes.
+
+\paragraph{System drift and the Kalman decomposition}
+
+As we previously demonstrated in \citet{schiffman2018system}, system drift can be modeled within this framework
+by either applying a simple coordinate transformation to a minimal system realization, or more generally,
+by applying the Kalman Decomposition. The Kalman Decomposition thus characterizes the set of all phenotypically
+equivalent linear gene regulatory networks, of any finite network size.
+
+This characterization immediatley leads us to ask, what determins network size and complexity?
+
+To address this question, we first give a precise definition of ``complexity'', as used in this article. 
+Here, we refer to a system as \emph{complex} if it is non-minimal. Thus, any system that could, in principle, successfully
+perform its function, exactly, with fewer genes, is deemed to be complex. 
+
+
+The \textbf{Kalman decomposition} of a system $(A,B,C)$  
+gives a change of basis $P$ such that
+the transformed system $(PAP^{-1},PB,CP^{-1})$  has the following form:
+\begin{align*}
+       PAP^{-1}
+       &=
+       \left[ \begin{array}{cccc}
+           A_{\rno} & A_{\rno,\ro} & A_{\rno,\nrno} & A_{\rno,\nro} \\
+           0 & A_{\ro} & 0 & A_{\ro,\nro} \\
+           0 & 0 & A_{\nrno} & A_{\nrno,\nro} \\
+          0 & 0 & 0 & A_{\nro}
+       \end{array} \right] ,
+\end{align*}
+and
+\begin{align*}
+     PB
+     &=
+    \left[ \begin{array}{cccc}
+         B_{\rno} \\
+         B_{\ro} \\
+         0 \\
+         0 
+   \end{array} \right] 
+   &
+   (CP^{-1})^T
+   &=
+   \left[ \begin{array}{cccc}
+       0 \\
+       C_{\ro}^T \\
+       0 \\
+       C_{\nro}^T
+   \end{array} \right] .
+\end{align*}
+% and
+% \begin{align*}
+%    CP^{-1}
+%    &=
+%    \left[ \begin{array}{cccc}
+%        0 & C_{\ro} & C_{\nrno} & 0 
+%    \end{array} \right] .
+%\end{align*}
+The impulse response of the system is given by
+\begin{align*}
+      h(t) = C_{\ro} e^{A_{\ro} t} B_{\ro},
+\end{align*}
+and therefore, the system is phenotypically equivalent to the \emph{minimal} system $(A_{\ro}, B_{\ro}, C_{\ro})$.
+
+This decomposition is unique up to a change of basis that preserves the block structure.
+In particular, 
+the minimal subsystem obtained by the Kalman decomposition
+is unique up to a change of coordinates.
+This implies that there is no equivalent system with a smaller number of kryptotypic dimensions
+than the dimension of the minimal system.
+It is remarkable that the gene regulatory network architecture to achieve a given input--output map is never unique --
+both the change of basis used to obtain the decomposition
+and, once in this form, all submatrices other than $A_{\ro}$, $B_{\ro}$, and $C_{\ro}$ can be changed without affecting the phenotype,
+and so represent degrees of freedom.
+(However, some of these subspaces may affect how the system deals with noise.)
+
+\paragraph{Fitness function}
+
+We will quantify how far a system's phenotype is from optimal
+using a weighted difference between impulse response functions.
+Suppose that $\rho(t)$ is a nonnegative, smooth, square-integrable weighting function,
+$h_0(t)$ is the \emph{optimal} impulse response function
+and define the ``distance to optimum'' of another impulse response function
+to be
+\begin{align}
+\label{eqn:distance}
+	D(h) = \left( \int_0^\infty \rho(t) \|h(t) - h_0(t)\|^2 dt \right)^{1/2} .
+\end{align}
+
+The fitness of an organism is then given by, 
+
+\begin{align}
+  \exp\left(-\frac{D(h)}{\gamma}\right)
+\end{align}
+
+
+\paragraph{Ratchet Propensity}
+
+To assess the possibility of a gene regulatory network ratchet
+we asked whether or not non-minimal gene regulatory neworks were robust to gene deletions. 
+We reasoned that, although the removal of an initially superfluous gene may be incosequential, that following a period of system drift
+the initially superfluous gene may be difficult, or even impossible to remove without compromising network function, and thus
+organismal fitness. 
+
+If such a process were to occur, network complexity may \emph{ratchet} up in complexity over evolutionary time, as more and more
+genes become essential for proper network functioning. Furthermore, if this process were to go on indefinitely, perhaps as more
+and more genes contribute to network functioning, the phenotypic impact of removing a gene may diminish with network size, such that networks can more easily be pruned. 
+If so, there may be some equilibrium network size, where a system ratchets up in complexity, up to the point at which gene deletions become easily tolerated.
+
+To examine this process, we randomly generated phenotypically equivalent systems of varying
+network sizes, sequentially deleting genes (with replacement), and then subsequentially measuring fitnesses.
+If a system could withstand the removal of at least
+one gene, we say it is reducibile.
+
+PLOT OF REDUCIBILITY
+
+\begin{figure}[H]
+\includegraphics[width=0.5\textwidth]{oscillator/reducibility_plot.pdf}
+\end{figure}
+
+\paragraph{Simulation Results}
+
+In the previous seciton, we plotted network reducibility versus network size. 
+This plot suggests that non-minimal networks, on average, are less reducibile than larger networks.
+Further, it appears that as networks get larger, reducibility tends towards $1$. 
+
+Despite this demonstration, it is not clear that a population evolving under stabilizing selection will
+ratchet up in complexity. To assess this potential we simulated the evolution of a population under stabilizing selection. 
+
+We simulate the evolution of a population of $100$ individuals for $10,000$ generations. We vary gene mutation, addition and deletion rates,
+as well as the average mutational magnitude -- that is the magnitude of the change to a system regulatory coefficient. We can also choose any
+linear dynamical system, as well as the initial network size, whether its minimal or non-minimal at generation zero.
+
+PLOTS OF EVOLUTION SIMULATIONS FOR DIFFERENT PARAMETER SCHEMES AND INITIAL CONDITIONS
+
+Depending on the parameter scheme and the initial system conditions chosen, we observe very different evolutionary outcomes. 
+If we run 80 simulations, starting with a minimal, two-dimensional oscillator, varying each parameter by an order of magnitude
+ranging in values from 0.1 to 0.0001 such that gene addition rates are always less than or equal to deletion rates, and where
+deletion rates are always less than or equal to mutation rates, we do not observe any network growth, except for one case, when
+deletion and addition rates are not equivalent. Further, we only observe network growth in a subset of these simulation, where
+both the mutation rate and mutational magnitude are relatively high, either 0.1 or 0.01.
+
+Upon further analyzing the simulation results in which systems tend to ratchet up in complexity, we also see that under some parameter schemes,
+this apparent complexity is often trivial -- that is, the excess genes present in the system do not contribute significantly to network
+function, and can easily be pruned without affecting phenotype or fitness. 
+
+\begin{figure}[H]
+\includegraphics[width=0.5\textwidth]{oscillator/evolsim.mut1.sig2.del4.add4_id461530/all_plots.pdf}
+\end{figure}
+PLOTS WITH GENE ESSENTIALITY COLORED IN
+
+Given that some paramer schemes lead to highly complex gene regulatory networks, whereas others lead to simple, streamlined network architectures,
+we sought to determine the equilibrium network sizes, given evolutionary parameters. 
+
+\paragraph{Simulations without gene addition and deletion dynamics}
+
+Depending on the biological details of system evolution gene addition and deletion as modeled above
+may be a fairly inaccurate mechanism. The mechanism, first adds or removes empty gene ``slots'' which can
+subsequntially mutate to interact neutrally, deleteriously, or beneficially with the current system.
+In some cases, genes may not necessarily join functional networks in such a manner, and may instead
+be recruited from other contemporaneously active regulatory networks. If so, a more accurate model
+might not allow a mechanism to remove or add new gene slots, but more simply, use a mechanism that recruits
+already available and active genes. In this case, we may start with a minimum system with a fixed size $n'$,
+of which only a subset of genes, say the minimum number $n_{\min}$, are initially active (i.e. non-zero), and
+$n' - n_{\min}$ inactive (i.e. set to zero) genes. In such a scenario, our simulations show that these networks
+tend to slowly recruit all possible available genes, such that after sufficient time, most, if not all of the $n'$
+genes are functionall important to network function, and consequential if removed. This seems to be just a general case
+of system drift. 
+
+PLOT OF STATIC NETWORK SIZE
+\begin{figure}[H]
+\includegraphics[width=0.5\textwidth]{only_mut_oscillator/evolsim.mut1.sig1_id006675/all_plots.pdf}
+\end{figure}
+\paragraph{Mutational Meltdown}
+
+PLOTS and analysis of when mutational meltdown occurs
+
+\begin{figure}[H]
+\includegraphics[width=0.5\textwidth]{oscillator/evolsim.mut2.sig1.del3.add3_id500461/network_size_and_fitness_plots.pdf}
+\end{figure}
+
+\paragraph{Moonlighting among systems}
+
+If two functionally independent regulatory systems are active within an organism, such that an organism's
+fitness is a function of two phenotypic traits, given by the systems $\left(A,B,C\right)$
+and $(\widehat{A}, \widehat{B}, \widehat{C})$, with state spaces given by, 
+\begin{equation}
+   \begin{aligned}
+    \dot{\kappa}(t) &= A \kappa(t) + B u(t) \\
+    \phi(t) &= C \kappa(t) \\ \\
+     \dot{\hat{\kappa}}(t) &= \widehat{A} \hat{\kappa}(t) + \widehat{B} \hat{u}(t) \\
+     \hat{\phi}(t) &= \widehat{C} \hat{\kappa}(t) .
+  \end{aligned} 
+\end{equation}
+
+We can represent this as one composite system, 
+
+\begin{equation}
+  \begin{aligned}
+    \begin{bmatrix}
+      \dot{\kappa}(t) \\
+      \hat{\kappa}(t) 
+    \end{bmatrix} &=
+    \begin{bmatrix}
+      A & 0 \\
+      0 & \widehat{A} 
+    \end{bmatrix}
+    \begin{bmatrix}
+      \kappa(t) \\
+      \hat{\kappa}(t)
+    \end{bmatrix} + 
+    \begin{bmatrix}
+      B & 0 \\
+      0 & \widehat{B}
+    \end{bmatrix}
+    \begin{bmatrix}
+      u(t) \\ \hat{u}(t)
+    \end{bmatrix} \\
+    \begin{bmatrix}
+      \phi(t) \\
+      \hat{\phi}(t)
+    \end{bmatrix} &=
+    \begin{bmatrix}
+      C & 0 \\
+      0 & \widehat{C} 
+    \end{bmatrix}
+     \begin{bmatrix}
+       \kappa(t) \\
+       \hat{\kappa}(t)
+    \end{bmatrix}
+  \end{aligned}
+\end{equation}
+
+If we then apply a coordinate transformation to this composite system, we will preserve its overall
+function and phenotype, however, interconnections can form between the systems, and the systems may
+become intertwined by genetic moonlighting. As such, the phenotypically equivalent space for the composite system
+includes network organizations with interconnections between the systems. In fact, the vast majority of network
+realizations following a coordinate transformation will include non-zero terms in the off-diagonal entries of the the composite matrices. 
+This is just a special case of system drift. In this case complexity, as defined as superfluous genes (with respect to both systems), does
+not increase, however the complexity with respect to each individual system does increase. This model seems to predict that pleiotropy
+may tend to increase among systems simultaneously active within a cell.
+
+This may be an illustration of what is observed in \citet{smith2015mitochondrial}.
+
+\paragraph{Non-minimal Start}
+
+PLOTS where simulation starts at a non-minimal state -- selection can reduce system size, but can get ``stuck'' in a non-minimal spot.
+\begin{figure}[H]
+\includegraphics[width=0.5\textwidth]{nm_oscillator/evolsim.mut2.sig1.del2.add3_id438626/network_size_and_fitness_plots.pdf}
+\end{figure}
+
+\paragraph{Equilibrium Network sizes}
+
+If we imagine a strictly neutral gene addition and deletion scenario such that there is no mutational target size penalty,
+we might expect networks to reach an equillibrium size where its reducibility is near $1$. However, in this framework,
+we also know that the mutational target size of a network will increase quadratically with the number of genes involved,
+and depending on the typical costs of mutation $s$ and deletion $s^{\text{DEL}}$, selection may oppose gene addition. To quantify
+the balance of these forces we derive the following equation; network size should be determined by a balance of both neutral
+and selective evolutionary forces as approximated by,
+
+\begin{equation}
+\mathbb{E} \left[ n_{t+1} \right] \approx n_t \left( 1 + \frac{p_{\text{add}} \left(1 - p_{\text{mut}}4ns_n\right) - p_{\text{del}} \left(1 - s^{\text{DEL}}_{n}\right)}{\bar{w}} \right) .
+\end{equation}
+
+This equation estimates the expected network size in the following generation $n_{t+1}$. This is a consequence of the current network size,
+the mutation rate, the addition and deletion rates, as well as the average fitness costs of mutation and gene deletions. 
+
+This equation can be derived by considering the following table, such that mean network size is computed as,
+
+\begin{equation}
+\frac{\sum_{\text{sizes}} (\% \text{size}) \times (\text{fitness at size}) \times \text{size})}{\sum_{\text{sizes}} (\% \text{size}) \times (\text{fitness at size})}
+\end{equation}
+
+\begin{tabular}{l | c | r}
+\hline
+Offspring size & \% & Mean fitness relative to parent \\
+\hline
+$n-1$ & $n p_{\text{del}}$ & $1 - s^{\text{DEL}}_{n}$ \\
+\hline
+$n$ & $1 - (p_{\text{del}} + p_{\text{add}})n$ & $1 - p_{\text{mut}} n^2 s_n$ \\
+\hline
+$n+1$ & $n p_{\text{add}}$ & $1 - p_{\text{mut}}(n + 1)^2 s_{n+1}$ \\ 
+\hline
+\end{tabular}
+
+
+\section{Discussion}
+
+We show that similar to Stoltzfus' tangling wires analogy \citep{stoltzfus2012constructive},
+gene regulatory networks will tend to incorporate all available genes over evolutionary time.
+This process is essentially an entropic one, as the function of the network slowly diffuses
+across the available, actively transcribed genes -- if a gene can get involved, it likely will get involved.
+However, it is much less likely that new genes
+will be added to a network if they are not already, somehow functionally, or at least presently, active.
+Only under sufficiently high (although perhaps biologically realistic) gene addition and mutation rates,
+will networks ratchet up in complexity,
+by adding \emph{de novo} components. Continuing with Stolzfus' analogy, this is the difference between
+simply scrambling already present wires versus adding and then scrambling wires. In the latter case,
+if scrambling does not occur rapidly enough, selection may remove the superfluous wires, as they increase
+the risk of malfunction; in biological terms, these extra genes increase,
+however slightly, the mutational target size of the network.
+There is another important distinction between these two processes: there is no need to invoke a ratchet like mechanism
+to explain the scrambling-only process (also referred to as \emph{moonlighting} \citep{speijer2011does}) -- whether or
+not a scrambled network can function with or without one of its components
+is not the force that adds complexity to networks -- it is simply due to the size of the neutral, phenotypically-equivalent,
+network space. If the neutral network space is sufficiently large, the probability that a system finds itself organized in the
+simplest (or nearly simplest) configuration becomes exceedingly improbable.
+In this view, this process is just a special case of \emph{system drift} \citep{true2001developmental, schiffman2018system}.
+Furthermore, our results suggest that if a gene regulatory network is recruited to perform
+a new or modified function (due to changes in selective pressures), upon reorganizing, the network may
+be unable to reduce its ``excess'' complexity sufficiently, as it may find itself mutationally disconnected from
+simpler network organizations. It is important to note, however, that these results are specific to our modeling
+framework of regulatory networks, and may not translate to other discussions of complexity, such as the evolution of the spliceosome. 
+
+\bibliographystyle{plainnat}
+\bibliography{$HOME/kalman_walk/krefs}
+
+\end{document}

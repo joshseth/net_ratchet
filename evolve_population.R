@@ -53,6 +53,8 @@ message(sprintf("\nEvolving the %s for %d generations\nPopulation size: %d\nMuta
                 basedir, max_generation, population_size, p_mut, sigma_mut, p_del, p_new))
 gen_step <- 1
 pop=rep(list(sys0), population_size)
+#pop=rep(list(c(sys0, list(fitness=1.0))), population_size)
+
 for (generations in 1:max_generation)
 {
     outfile <- file.path(outdir, sprintf("fossil_%0*d.Rdata", nchar(max_generation), generations))

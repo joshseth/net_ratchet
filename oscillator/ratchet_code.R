@@ -4,20 +4,13 @@ set.seed(23)
 
 ransys_costdel <- function(sys0, std, m)
 {
-    repeat {
         sys <- rand_realization(sys0, std, m);
-        if (D(sys$A, sys$B, sys$C, optimal_h=sys0$optimal_h) <= 0.1)
-        {
-            break
-        }
-    }
     n <- nrow(sys$A)
     dist_list <- rep(0,n)
     for (i in 1:n)
     {
         sysd <- delete_gene(sys, i)
-        dist_list[i] <- tryCatch(D(sysd$A, sysd$B, sysd$C, optimal_h=sys0$optimal_h), 
-                                 error=function(e) NaN)
+        dist_list[i] <- D(sysd, sys0)
     }
     return(c(n, mean(dist_list), min(dist_list), mean(exp(-dist_list))))
 }
@@ -27,16 +20,16 @@ ransys_costdel <- function(sys0, std, m)
 
 ######## Computation begins #####################
 
-cost_rsys <- matrix(0, nrow=0, ncol=4)
+cost_rsys <- matrix(0, nrow=20, ncol=4)
 colnames(cost_rsys) <- c("n", "mean_distance", "min_distance", "mean_fitness")
 
-for (gg in seq(0,10,5))
+for (gg in seq(0,40,2))
 {
     cost_rsys0 <- matrix(0, nrow=100, ncol=4); 
     colnames(cost_rsys0) <- c("n", "mean_distance", "min_distance", "mean_fitness")
     for (j in 1:100)
     {
-        cost_rsys0[j,] <- ransys_costdel(sys0, 0.00000001, gg);
+        cost_rsys0[j,] <- ransys_costdel(sys0, 0.01, gg);
     }
     cost_rsys <- rbind(cost_rsys, cost_rsys0)
 }
